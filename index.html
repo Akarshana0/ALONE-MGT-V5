@@ -1,0 +1,2978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Alone Management - Pro V5</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0b0e14">
+    <link rel="apple-touch-icon" href="icon.jpg">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AloneMgt">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Outfit', 'sans-serif'] },
+                    colors: {
+                        dark: '#0b0e14', card: '#151b23', primary: '#3b82f6',
+                        secondary: '#6366f1', success: '#10b981', danger: '#ef4444',
+                        warning: '#f59e0b', info: '#06b6d4', purple: '#8b5cf6',
+                        textMain: '#e2e8f0', textMuted: '#94a3b8'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { -webkit-tap-highlight-color: transparent; }
+        body { background-color: #0b0e14; color: #e2e8f0; font-family: 'Outfit', sans-serif; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: #151b23; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+
+        .fade-in { animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+        .slide-up { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .nav-item.active { background: linear-gradient(90deg, rgba(59,130,246,0.18) 0%, transparent 100%); border-left: 3px solid #3b82f6; color: #60a5fa; }
+        .nav-item.active i { color: #60a5fa; }
+        .nav-item { border-left: 3px solid transparent; }
+
+        .glass { background: rgba(21,27,35,0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.06); }
+        .card-glow { box-shadow: 0 4px 24px rgba(59,130,246,0.08); }
+
+        .toast-item { transform: translateX(110%); transition: transform 0.3s ease-in-out; }
+        .toast-item.show { transform: translateX(0); }
+
+        .bottom-nav-item.bn-active { color: #3b82f6; }
+        .bottom-nav-item.bn-active .bn-dot { opacity: 1; }
+        .bn-dot { width: 4px; height: 4px; background: #3b82f6; border-radius: 50%; margin: 2px auto 0; opacity: 0; transition: opacity 0.2s; }
+
+        .pin-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #475569; background: transparent; transition: all 0.2s; }
+        .pin-dot.filled { background: #3b82f6; border-color: #3b82f6; transform: scale(1.15); }
+
+        .numpad-btn { background: #1e293b; border: 1px solid #334155; border-radius: 16px; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 600; cursor: pointer; transition: all 0.15s; color: #e2e8f0; user-select: none; }
+        .numpad-btn:active { background: #334155; transform: scale(0.92); }
+
+        body.light-mode { background-color: #f0f4f8; color: #1e293b; }
+        .light-mode aside, .light-mode .bg-card, .light-mode header, .light-mode #mobile-bottom-nav { background-color: #ffffff !important; }
+        .light-mode .border-slate-800, .light-mode .border-slate-700 { border-color: #e2e8f0 !important; }
+        .light-mode .text-textMuted { color: #64748b !important; }
+        .light-mode .bg-dark, .light-mode .bg-slate-900\/50, .light-mode .bg-slate-800\/50 { background-color: #f1f5f9 !important; }
+        .light-mode input, .light-mode select, .light-mode textarea { background-color: #f8fafc !important; border-color: #cbd5e1 !important; color: #1e293b !important; }
+        .light-mode .text-white, .light-mode .text-slate-200, .light-mode .text-slate-300 { color: #1e293b !important; }
+        .light-mode .text-slate-400 { color: #64748b !important; }
+        .light-mode .nav-item:hover { background-color: #f1f5f9 !important; }
+        .light-mode .bg-dark\/50, .light-mode .bg-slate-800 { background-color: #e8edf3 !important; }
+        .light-mode .bg-card { background-color: #ffffff !important; }
+        .light-mode main { background-color: #f0f4f8 !important; }
+
+        .cat-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+        .progress-bar { height: 6px; background: #1e293b; border-radius: 99px; overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 99px; transition: width 0.6s ease; }
+        .stat-card { transition: transform 0.2s, box-shadow 0.2s; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom, 16px); }
+        .search-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
+
+        /* Wallet cards */
+        .wallet-card { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 16px; border: 1px solid rgba(255,255,255,0.06); padding: 1.25rem; transition: transform 0.2s, box-shadow 0.2s; }
+        .wallet-card:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.3); }
+
+        /* Receipt thumbnail */
+        .receipt-thumb { width: 36px; height: 36px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid #334155; flex-shrink: 0; transition: transform 0.15s; }
+        .receipt-thumb:hover { transform: scale(1.08); }
+
+        /* Cat budget bar */
+        .cat-budget-bar .progress-fill { transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1); }
+
+        [v-cloak] { display: none; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden selection:bg-primary selection:text-white">
+
+<!-- ===== OFFLINE BANNER ===== -->
+<div id="offline-banner" class="hidden fixed top-0 left-0 right-0 z-[300] bg-warning text-dark text-xs font-bold text-center py-1.5 flex items-center justify-center gap-2">
+    <i class="fa-solid fa-wifi-slash"></i> Offline mode — All data saved locally
+</div>
+
+<div id="app" v-cloak>
+
+<!-- ===== TOAST CONTAINER ===== -->
+<div class="fixed top-5 right-5 z-[200] flex flex-col gap-2 pointer-events-none">
+    <transition-group name="toast-slide" tag="div" class="flex flex-col gap-2">
+        <div v-for="toast in toasts" :key="toast.id"
+             class="text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 min-w-[200px] max-w-xs text-sm font-medium pointer-events-auto"
+             :class="toastColors[toast.type]">
+            <i class="fa-solid flex-shrink-0" :class="toastIcons[toast.type]"></i>
+            <span>{{ toast.message }}</span>
+        </div>
+    </transition-group>
+</div>
+
+<!-- ===== RECEIPT VIEWER MODAL ===== -->
+<div v-if="viewingReceiptUrl" class="fixed inset-0 bg-black/90 z-[150] flex items-center justify-center p-4 backdrop-blur-sm" @click.self="viewingReceiptUrl = null">
+    <div class="relative max-w-sm w-full fade-in">
+        <button @click="viewingReceiptUrl = null" class="absolute -top-10 right-0 text-white/70 hover:text-white text-sm bg-slate-800 px-3 py-1 rounded-lg"><i class="fa-solid fa-xmark mr-1"></i>Close</button>
+        <img :src="viewingReceiptUrl" alt="Receipt" class="w-full rounded-2xl shadow-2xl border border-slate-700">
+    </div>
+</div>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div v-if="!isAuthenticated" class="fixed inset-0 z-50 flex flex-col items-center justify-center p-6" style="background: linear-gradient(135deg, #0b0e14 0%, #0f172a 100%);">
+    <div class="w-full max-w-xs text-center fade-in">
+        <img src="icon.jpg" alt="Alone Management" class="w-20 h-20 mx-auto mb-6 rounded-2xl shadow-2xl shadow-primary/30 object-cover">
+        <h1 class="text-2xl font-bold text-white mb-1">{{ t('welcome') }}</h1>
+        <p class="text-textMuted text-sm mb-8">{{ t('subtitle') }}</p>
+        <div class="flex justify-center gap-4 mb-8">
+            <div v-for="i in 4" :key="i" class="pin-dot" :class="{ filled: pinBuffer.length >= i }"></div>
+        </div>
+        <p v-if="pinError" class="text-danger text-sm mb-4 fade-in">{{ t('wrong_pin') }}</p>
+        <div class="grid grid-cols-3 gap-3 mb-4">
+            <button v-for="n in [1,2,3,4,5,6,7,8,9]" :key="n" class="numpad-btn" @click="pinInput(String(n))">{{ n }}</button>
+            <button v-if="appData.settings.bioEnabled" class="numpad-btn text-xl" @click="pinInput('bio')"><i class="fa-solid fa-fingerprint text-success"></i></button>
+            <div v-else class="numpad-btn opacity-20 cursor-default"><i class="fa-solid fa-fingerprint text-slate-600"></i></div>
+            <button class="numpad-btn" @click="pinInput('0')">0</button>
+            <button class="numpad-btn text-xl" @click="pinInput('del')"><i class="fa-solid fa-delete-left text-danger"></i></button>
+        </div>
+        <p class="text-slate-600 text-xs">Default PIN: 1234</p>
+    </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div v-if="isAuthenticated" class="flex-1 flex h-screen overflow-hidden fade-in">
+
+    <!-- SIDEBAR (Desktop) -->
+    <aside class="w-64 hidden md:flex flex-col bg-card border-r border-slate-800/60 fixed h-full z-30">
+        <div class="p-6 flex items-center gap-3">
+            <img src="icon.jpg" alt="A" class="w-9 h-9 rounded-xl object-cover shadow-lg shadow-primary/30">
+            <div>
+                <h1 class="text-base font-bold tracking-wide text-white">Alone<span class="text-primary font-light">Mgt</span></h1>
+                <p class="text-xs text-slate-500">Pro V5</p>
+            </div>
+        </div>
+        <nav class="flex-1 px-3 space-y-1 mt-2 overflow-y-auto">
+            <button v-for="item in navItems" :key="item.id" @click="nav(item.id)"
+                    class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800/60 transition-all text-sm font-medium"
+                    :class="{ active: currentSection === item.id }">
+                <i class="w-5 text-center text-base" :class="item.icon"></i><span>{{ t(item.key) }}</span>
+            </button>
+            <div class="pt-3 mt-3 border-t border-slate-800">
+                <button @click="nav('settings')" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800/60 transition-all text-sm font-medium" :class="{ active: currentSection === 'settings' }">
+                    <i class="fa-solid fa-gear w-5 text-center text-base"></i><span>{{ t('nav_settings') }}</span>
+                </button>
+            </div>
+        </nav>
+        <div class="p-4 border-t border-slate-800">
+            <div class="flex items-center gap-3 mb-3 px-2">
+                <div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-sm"><i class="fa-solid fa-user"></i></div>
+                <div>
+                    <p class="text-xs font-semibold text-white">AloneMgt User</p>
+                    <p class="text-[10px] text-slate-500">{{ appData.settings.currency }}</p>
+                </div>
+            </div>
+            <button @click="logout()" class="w-full flex items-center justify-center gap-2 text-danger hover:bg-danger/10 py-2 rounded-lg transition text-xs font-bold uppercase tracking-wider">
+                <i class="fa-solid fa-power-off"></i>{{ t('nav_lock') }}
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 flex flex-col h-screen overflow-hidden bg-dark md:ml-64">
+        <!-- Mobile Header -->
+        <header class="md:hidden bg-card/90 backdrop-blur-md px-4 py-3 flex justify-between items-center border-b border-slate-800/60 sticky top-0 z-20">
+            <div class="flex items-center gap-2">
+                <img src="icon.jpg" alt="A" class="w-7 h-7 rounded-lg object-cover">
+                <span class="font-bold text-white">Alone<span class="text-primary font-light">Mgt</span></span>
+            </div>
+            <div class="flex items-center gap-2">
+                <button @click="openModal('transfer')" class="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center text-slate-400 hover:text-white" title="Transfer"><i class="fa-solid fa-arrow-right-arrow-left text-sm"></i></button>
+                <button @click="openModal('transaction')" class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white shadow-lg shadow-primary/30"><i class="fa-solid fa-plus text-sm"></i></button>
+            </div>
+        </header>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto pb-24 md:pb-8" ref="mainScroll">
+
+            <!-- ===== DASHBOARD ===== -->
+            <section v-show="currentSection === 'dashboard'" class="fade-in p-4 md:p-8 space-y-6 max-w-6xl mx-auto">
+                <div class="flex flex-col md:flex-row justify-between md:items-center gap-3">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">{{ t('nav_dashboard') }}</h2>
+                        <p class="text-textMuted text-sm">{{ t('dash_desc') }}</p>
+                    </div>
+                    <div class="hidden md:flex gap-2">
+                        <button @click="openModal('transfer')" class="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition">
+                            <i class="fa-solid fa-arrow-right-arrow-left"></i>{{ t('transfer') }}
+                        </button>
+                        <button @click="openModal('transaction')" class="flex items-center gap-2 bg-primary hover:bg-blue-600 text-white px-5 py-2.5 rounded-xl shadow-lg shadow-primary/20 transition text-sm font-semibold">
+                            <i class="fa-solid fa-plus"></i>{{ t('btn_new_trans') }}
+                        </button>
+                    </div>
+                </div>
+
+                <!-- STAT CARDS -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="stat-card p-6 rounded-2xl border border-slate-700/40 relative overflow-hidden" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+                        <div class="absolute right-0 top-0 w-28 h-28 rounded-full opacity-20 -mr-8 -mt-8" style="background: radial-gradient(circle, #3b82f6 0%, transparent 70%)"></div>
+                        <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">{{ t('total_balance') }}</p>
+                        <h3 class="text-3xl font-black text-white">{{ formatMoney(totalBalance) }}</h3>
+                        <div class="mt-4 flex items-center gap-2 text-xs font-medium text-primary bg-primary/10 px-3 py-1.5 rounded-lg w-fit">
+                            <i class="fa-solid fa-wallet text-xs"></i>{{ t('all_wallets') }}
+                        </div>
+                    </div>
+                    <div class="stat-card bg-card p-6 rounded-2xl border border-slate-800/60">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="cat-icon bg-success/15 text-success"><i class="fa-solid fa-arrow-trend-up"></i></div>
+                            <div>
+                                <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider">{{ t('income') }}</p>
+                                <h3 class="text-2xl font-bold text-success">{{ formatMoney(totalIncome) }}</h3>
+                            </div>
+                        </div>
+                        <div class="progress-bar"><div class="progress-fill bg-success" style="width:100%"></div></div>
+                        <p class="text-xs text-slate-500 mt-2">{{ t('accumulated') }}</p>
+                    </div>
+                    <div class="stat-card bg-card p-6 rounded-2xl border border-slate-800/60">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="cat-icon bg-danger/15 text-danger"><i class="fa-solid fa-arrow-trend-down"></i></div>
+                            <div>
+                                <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider">{{ t('expenses') }}</p>
+                                <h3 class="text-2xl font-bold text-danger">{{ formatMoney(totalExpense) }}</h3>
+                            </div>
+                        </div>
+                        <div class="progress-bar"><div class="progress-fill" :class="budgetPctClass" :style="{ width: Math.min(budgetPct, 100) + '%' }"></div></div>
+                        <p class="text-xs text-slate-500 mt-2">{{ Math.round(budgetPct) }}% · {{ formatMoney(monthExpense) }} / {{ formatMoney(appData.settings.budget) }}</p>
+                    </div>
+                </div>
+
+                <!-- WALLET CARDS -->
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-base font-bold text-white">{{ t('my_wallets') }}</h3>
+                        <button @click="nav('wallets')" class="text-xs text-primary hover:text-blue-400 font-medium">{{ t('manage') }} →</button>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div v-for="wallet in appData.wallets" :key="wallet.id" class="wallet-card slide-up">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm shadow-lg" :style="{ background: `linear-gradient(135deg, ${wallet.color}, ${wallet.color}aa)` }">
+                                    <i class="fa-solid" :class="wallet.icon"></i>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-white text-sm">{{ wallet.name }}</p>
+                                    <p class="text-xs text-slate-500">{{ wallet.type }}</p>
+                                </div>
+                            </div>
+                            <p class="text-xl font-bold" :class="walletBalance(wallet.id) >= 0 ? 'text-white' : 'text-danger'">{{ formatMoney(walletBalance(wallet.id)) }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- QUICK ACTIONS (Mobile) -->
+                <div class="grid grid-cols-4 gap-3 md:hidden">
+                    <button @click="openModal('transaction')" class="flex flex-col items-center gap-1.5 bg-card p-3 rounded-xl border border-slate-800">
+                        <div class="w-9 h-9 bg-primary/15 rounded-xl flex items-center justify-center text-primary"><i class="fa-solid fa-plus"></i></div>
+                        <span class="text-[10px] text-slate-400">{{ t('add_new') }}</span>
+                    </button>
+                    <button @click="nav('reports')" class="flex flex-col items-center gap-1.5 bg-card p-3 rounded-xl border border-slate-800">
+                        <div class="w-9 h-9 bg-secondary/15 rounded-xl flex items-center justify-center text-secondary"><i class="fa-solid fa-chart-pie"></i></div>
+                        <span class="text-[10px] text-slate-400">{{ t('nav_reports') }}</span>
+                    </button>
+                    <button @click="nav('savings')" class="flex flex-col items-center gap-1.5 bg-card p-3 rounded-xl border border-slate-800">
+                        <div class="w-9 h-9 bg-info/15 rounded-xl flex items-center justify-center text-info"><i class="fa-solid fa-piggy-bank"></i></div>
+                        <span class="text-[10px] text-slate-400">{{ t('nav_savings') }}</span>
+                    </button>
+                    <button @click="openModal('transfer')" class="flex flex-col items-center gap-1.5 bg-card p-3 rounded-xl border border-slate-800">
+                        <div class="w-9 h-9 bg-purple/15 rounded-xl flex items-center justify-center text-purple"><i class="fa-solid fa-arrow-right-arrow-left"></i></div>
+                        <span class="text-[10px] text-slate-400">{{ t('transfer') }}</span>
+                    </button>
+                </div>
+
+                <!-- RECENT TRANSACTIONS -->
+                <div class="bg-card rounded-2xl border border-slate-800/60 overflow-hidden">
+                    <div class="flex justify-between items-center p-5 border-b border-slate-800/60">
+                        <h3 class="text-base font-bold text-white">{{ t('recent_activity') }}</h3>
+                        <button @click="nav('wallet')" class="text-xs text-primary hover:text-blue-400 font-medium">{{ t('view_all') }} →</button>
+                    </div>
+                    <div v-if="recentTransactions.length === 0" class="text-center py-10 text-slate-500 text-sm">
+                        <i class="fa-solid fa-receipt text-3xl mb-3 opacity-30 block"></i>
+                        <span>{{ t('no_tx') }}</span>
+                    </div>
+                    <ul class="divide-y divide-slate-800/40">
+                        <li v-for="tx in recentTransactions" :key="tx.id" class="flex items-center gap-3 px-5 py-3.5 hover:bg-slate-800/30 transition group">
+                            <div class="cat-icon flex-shrink-0" :class="catStyle(tx.category, tx.type==='income').color">
+                                <i class="fa-solid text-sm" :class="catStyle(tx.category, tx.type==='income').icon"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-semibold text-white text-sm truncate">{{ tx.category }}</p>
+                                <p class="text-xs text-slate-500 truncate">{{ formatDate(tx.date) }} {{ tx.note ? '· ' + tx.note : '' }}</p>
+                            </div>
+                            <img v-if="tx.receiptImage" :src="tx.receiptImage" alt="" class="receipt-thumb" @click="viewingReceiptUrl = tx.receiptImage">
+                            <div class="text-right flex-shrink-0">
+                                <p class="font-bold text-sm" :class="tx.type==='income' ? 'text-success' : 'text-red-400'">{{ tx.type==='income' ? '+' : '-' }}{{ formatMoney(tx.amount) }}</p>
+                                <div class="flex justify-end gap-2 mt-1">
+                                    <button @click="editTrans(tx.id)" class="text-primary hover:text-blue-400 text-xs"><i class="fa-solid fa-pen"></i></button>
+                                    <button @click="deleteTrans(tx.id)" class="text-danger hover:text-red-400 text-xs"><i class="fa-solid fa-trash"></i></button>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- ===== WALLET / TRANSACTIONS ===== -->
+            <section v-show="currentSection === 'wallet'" class="fade-in p-4 md:p-8 space-y-5 max-w-6xl mx-auto">
+                <div class="flex flex-col md:flex-row justify-between md:items-center gap-3">
+                    <h2 class="text-2xl font-bold text-white">{{ t('wallet_title') }}</h2>
+                    <button @click="openModal('transaction')" class="hidden md:flex bg-primary/20 text-primary hover:bg-primary/30 px-4 py-2 rounded-lg text-sm font-semibold items-center gap-2">
+                        <i class="fa-solid fa-plus"></i>{{ t('add_new') }}
+                    </button>
+                </div>
+                <div class="bg-card p-5 rounded-2xl border border-slate-800/60 space-y-4">
+                    <div class="relative">
+                        <i class="fa-solid fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                        <input type="text" v-model="searchTx" :placeholder="t('search_placeholder')" class="search-input w-full bg-dark border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none transition">
+                    </div>
+                    <div class="flex items-end gap-2">
+                        <div class="flex-1">
+                            <label class="block text-[10px] text-slate-500 uppercase mb-1">{{ t('start_date') }}</label>
+                            <input type="date" v-model="filterStart" class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:border-primary focus:outline-none">
+                        </div>
+                        <div class="text-slate-600 mb-2"><i class="fa-solid fa-arrow-right text-xs"></i></div>
+                        <div class="flex-1">
+                            <label class="block text-[10px] text-slate-500 uppercase mb-1">{{ t('end_date') }}</label>
+                            <input type="date" v-model="filterEnd" class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:border-primary focus:outline-none">
+                        </div>
+                        <button @click="searchTx=''; filterStart=''; filterEnd='';" class="mb-0.5 bg-slate-800 hover:bg-slate-700 text-white px-3 py-2 rounded-xl text-xs transition"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <div v-if="filteredTransactions.length === 0" class="text-center py-12 text-slate-500 border border-dashed border-slate-800 rounded-2xl">
+                        <i class="fa-solid fa-search text-3xl mb-3 opacity-30 block"></i>
+                        <p>{{ t('no_results') }}</p>
+                    </div>
+                    <ul class="space-y-2">
+                        <li v-for="tx in filteredTransactions" :key="tx.id" class="bg-dark/60 border border-slate-800/60 p-4 rounded-xl flex items-center gap-3 group hover:border-slate-600 transition slide-up">
+                            <div class="cat-icon flex-shrink-0" :class="catStyle(tx.category, tx.type==='income').color">
+                                <i class="fa-solid text-sm" :class="catStyle(tx.category, tx.type==='income').icon"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center flex-wrap gap-1">
+                                    <p class="font-semibold text-white text-sm">{{ tx.category }}</p>
+                                    <span v-if="tx.tripId" class="bg-secondary/20 text-secondary text-[10px] px-1.5 py-0.5 rounded-md ml-1"><i class="fa-solid fa-plane text-[9px]"></i></span>
+                                    <span v-if="tx.saveId" class="bg-info/20 text-info text-[10px] px-1.5 py-0.5 rounded-md ml-1"><i class="fa-solid fa-piggy-bank text-[9px]"></i></span>
+                                    <span v-if="tx.loanId" class="bg-purple/20 text-purple text-[10px] px-1.5 py-0.5 rounded-md ml-1"><i class="fa-solid fa-credit-card text-[9px]"></i></span>
+                                    <span v-if="tx.isTransfer" class="bg-warning/20 text-warning text-[10px] px-1.5 py-0.5 rounded-md ml-1"><i class="fa-solid fa-arrow-right-arrow-left text-[9px]"></i></span>
+                                    <span v-if="tx.isRecurring && !tx.isTransfer" class="bg-slate-700 text-slate-300 text-[10px] px-1.5 rounded-md"><i class="fa-solid fa-rotate text-[9px]"></i></span>
+                                </div>
+                                <p class="text-xs text-slate-500">{{ formatDateFull(tx.date) }} · {{ tx.note || '' }}</p>
+                                <p v-if="tx.walletId" class="text-[10px] text-slate-600 mt-0.5">
+                                    <i class="fa-solid fa-wallet mr-1"></i>{{ walletName(tx.walletId) }}
+                                </p>
+                            </div>
+                            <img v-if="tx.receiptImage" :src="tx.receiptImage" alt="Receipt" class="receipt-thumb" @click="viewingReceiptUrl = tx.receiptImage">
+                            <div class="text-right flex-shrink-0">
+                                <p class="font-bold text-sm" :class="tx.type==='income' ? 'text-success' : 'text-red-400'">{{ tx.type==='income' ? '+' : '-' }}{{ formatMoney(tx.amount) }}</p>
+                                <div class="flex justify-end gap-3 mt-1.5 transition">
+                                    <button @click="editTrans(tx.id)" class="text-primary hover:text-blue-400 text-sm transition"><i class="fa-solid fa-pen text-xs"></i></button>
+                                    <button @click="deleteTrans(tx.id)" class="text-danger hover:text-red-400 text-sm transition"><i class="fa-solid fa-trash text-xs"></i></button>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- ===== WALLETS MANAGER ===== -->
+            <section v-show="currentSection === 'wallets'" class="fade-in p-4 md:p-8 space-y-5 max-w-6xl mx-auto">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">{{ t('my_wallets') }}</h2>
+                        <p class="text-textMuted text-sm">{{ t('wallets_desc') }}</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button @click="openModal('addWallet')" class="flex items-center gap-2 bg-success hover:bg-green-600 text-white px-4 py-2.5 rounded-xl shadow-lg shadow-success/20 transition text-sm font-semibold">
+                            <i class="fa-solid fa-plus"></i>{{ t('add_wallet') }}
+                        </button>
+                        <button @click="openModal('transfer')" class="flex items-center gap-2 bg-primary hover:bg-blue-600 text-white px-5 py-2.5 rounded-xl shadow-lg shadow-primary/20 transition text-sm font-semibold">
+                            <i class="fa-solid fa-arrow-right-arrow-left"></i>{{ t('transfer') }}
+                        </button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div v-for="wallet in appData.wallets" :key="wallet.id" class="wallet-card slide-up relative">
+                        <div class="absolute top-3 right-3 flex gap-1.5">
+                            <button @click="editWallet(wallet)" class="w-7 h-7 bg-primary/20 hover:bg-primary/40 rounded-lg flex items-center justify-center text-primary text-xs transition"><i class="fa-solid fa-pen"></i></button>
+                            <button @click="deleteWallet(wallet.id)" class="w-7 h-7 bg-danger/20 hover:bg-danger/40 rounded-lg flex items-center justify-center text-danger text-xs transition"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-lg" :style="{ background: `linear-gradient(135deg, ${wallet.color}, ${wallet.color}99)` }">
+                                <i class="fa-solid text-lg" :class="wallet.icon"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-white">{{ wallet.name }}</h3>
+                                <p class="text-xs text-slate-500">{{ wallet.type }}</p>
+                            </div>
+                        </div>
+                        <p class="text-2xl font-black mb-1" :class="walletBalance(wallet.id) >= 0 ? 'text-white' : 'text-danger'">{{ formatMoney(walletBalance(wallet.id)) }}</p>
+                        <div class="grid grid-cols-2 gap-2 mt-3">
+                            <div class="bg-success/10 rounded-lg p-2 text-center">
+                                <p class="text-[10px] text-success uppercase font-semibold">In</p>
+                                <p class="text-xs font-bold text-success">{{ formatMoney(walletIncome(wallet.id)) }}</p>
+                            </div>
+                            <div class="bg-danger/10 rounded-lg p-2 text-center">
+                                <p class="text-[10px] text-danger uppercase font-semibold">Out</p>
+                                <p class="text-xs font-bold text-danger">{{ formatMoney(walletExpense(wallet.id)) }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Wallet transaction list -->
+                <div class="bg-card rounded-2xl border border-slate-800/60 overflow-hidden">
+                    <div class="p-5 border-b border-slate-800/60 flex justify-between items-center">
+                        <h3 class="text-base font-bold text-white">{{ t('recent_activity') }}</h3>
+                        <button @click="nav('wallet')" class="text-xs text-primary hover:text-blue-400 font-medium">{{ t('view_all') }} →</button>
+                    </div>
+                    <ul class="divide-y divide-slate-800/40 max-h-[400px] overflow-y-auto">
+                        <li v-if="recentTransactions.length === 0" class="text-center py-8 text-slate-500 text-sm">
+                            <i class="fa-solid fa-receipt text-2xl mb-2 opacity-30 block"></i>{{ t('no_tx') }}
+                        </li>
+                        <li v-for="tx in recentTransactions" :key="tx.id" class="flex items-center gap-3 px-5 py-3.5 hover:bg-slate-800/30 transition group">
+                            <div class="cat-icon flex-shrink-0" :class="catStyle(tx.category, tx.type==='income').color">
+                                <i class="fa-solid text-sm" :class="catStyle(tx.category, tx.type==='income').icon"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-semibold text-white text-sm">{{ tx.category }}</p>
+                                <p class="text-xs text-slate-500">{{ walletName(tx.walletId) }} · {{ formatDate(tx.date) }}</p>
+                            </div>
+                            <div class="text-right flex-shrink-0">
+                                <p class="font-bold text-sm" :class="tx.type==='income' ? 'text-success' : 'text-red-400'">{{ tx.type==='income' ? '+' : '-' }}{{ formatMoney(tx.amount) }}</p>
+                                <div class="flex justify-end gap-2 mt-1">
+                                    <button @click="editTrans(tx.id)" class="text-primary hover:text-blue-400 text-xs"><i class="fa-solid fa-pen"></i></button>
+                                    <button @click="deleteTrans(tx.id)" class="text-danger hover:text-red-400 text-xs"><i class="fa-solid fa-trash"></i></button>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- ===== LOANS ===== -->
+            <section v-show="currentSection === 'loans'" class="fade-in p-4 md:p-8 space-y-5 max-w-6xl mx-auto">
+                <div class="flex flex-col md:flex-row justify-between md:items-start gap-3">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">{{ t('loans_title') }}</h2>
+                        <p class="text-textMuted text-sm">{{ t('loans_desc') }}</p>
+                    </div>
+                    <button @click="openModal('loan')" class="flex items-center gap-2 bg-purple hover:bg-purple-600 text-white px-5 py-2.5 rounded-xl shadow-lg shadow-purple/20 transition text-sm font-semibold">
+                        <i class="fa-solid fa-plus"></i>{{ t('add_loan') }}
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="stat-card bg-card p-5 rounded-2xl border border-slate-800/60 relative overflow-hidden">
+                        <div class="absolute right-0 top-0 w-24 h-24 rounded-full opacity-10 -mr-6 -mt-6" style="background:radial-gradient(circle,#ef4444,transparent)"></div>
+                        <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider">{{ t('total_debt') }}</p>
+                        <h2 class="text-3xl font-black text-danger mt-1">{{ formatMoney(totalDebt) }}</h2>
+                    </div>
+                    <div class="stat-card bg-card p-5 rounded-2xl border border-slate-800/60 relative overflow-hidden">
+                        <div class="absolute right-0 top-0 w-24 h-24 rounded-full opacity-10 -mr-6 -mt-6" style="background:radial-gradient(circle,#f59e0b,transparent)"></div>
+                        <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider">{{ t('monthly_liability') }}</p>
+                        <h2 class="text-3xl font-black text-warning mt-1">{{ formatMoney(totalMonthlyInstallment) }}</h2>
+                    </div>
+                </div>
+                <div v-if="appData.loans.length === 0" class="text-center py-12 text-slate-500 border border-dashed border-slate-800 rounded-2xl">
+                    <i class="fa-solid fa-sack-dollar text-4xl mb-3 opacity-30 block"></i>{{ t('no_loans') }}
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div v-for="loan in appData.loans" :key="loan.id" class="bg-card p-5 rounded-2xl border relative group shadow-sm slide-up" :class="isLoanPaid(loan) ? 'border-success/30' : 'border-slate-800/60'">
+                        <div class="absolute top-4 right-4 flex gap-2">
+                            <button @click="editLoan(loan)" class="text-primary hover:text-blue-400 text-sm transition"><i class="fa-solid fa-pen text-xs"></i></button>
+                            <button @click="deleteLoan(loan.id)" class="text-slate-600 hover:text-danger text-sm transition"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-11 h-11 rounded-xl flex items-center justify-center text-white shadow-lg" style="background:linear-gradient(135deg,#8b5cf6,#6366f1)">
+                                <i class="fa-solid text-sm" :class="loan.type === 'Credit Card' ? 'fa-credit-card' : 'fa-building-columns'"></i>
+                            </div>
+                            <div><h3 class="font-bold text-white">{{ loan.name }}</h3><p class="text-xs text-slate-500">{{ loan.type }} · {{ loan.rate }}%</p></div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 mb-4">
+                            <div class="bg-dark/60 p-3 rounded-xl border border-slate-800">
+                                <p class="text-[10px] text-slate-500 uppercase font-semibold mb-1">{{ t('installment') }}</p>
+                                <p class="font-bold text-slate-200 text-sm">{{ formatMoney(loan.monthlyInstallment) }}</p>
+                            </div>
+                            <div class="bg-dark/60 p-3 rounded-xl border border-slate-800">
+                                <p class="text-[10px] text-slate-500 uppercase font-semibold mb-1">{{ t('remaining') }}</p>
+                                <p class="font-bold text-sm" :class="loanRemaining(loan) > 0 ? 'text-danger' : 'text-success'">{{ formatMoney(loanRemaining(loan)) }}</p>
+                            </div>
+                        </div>
+                        <div class="flex justify-between text-xs text-slate-500 mb-2">
+                            <span>{{ t('paid_months') }}: {{ loan.paidMonths }}/{{ loan.months }}</span>
+                            <span>{{ Math.round(loanProgress(loan)) }}{{ t('pct_done') }}</span>
+                        </div>
+                        <div class="progress-bar mb-4"><div class="progress-fill bg-success" :style="{ width: Math.min(loanProgress(loan), 100) + '%' }"></div></div>
+                        <button v-if="!isLoanPaid(loan)" @click="payLoanInstallment(loan.id)" class="w-full bg-slate-800 hover:bg-success hover:text-white text-slate-300 py-2.5 rounded-xl font-semibold transition text-sm flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-check-circle"></i>{{ t('pay_installment') }}
+                        </button>
+                        <div v-else class="text-center text-success font-bold py-2 bg-success/10 rounded-xl text-sm">{{ t('loan_paid') }}</div>
+                    </div>
+                </div>
+
+                <!-- ===== LENT MONEY SUBSECTION ===== -->
+                <div class="mt-6">
+                    <div class="flex flex-col md:flex-row justify-between md:items-center gap-3 mb-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                <span class="w-8 h-8 rounded-xl bg-warning/20 flex items-center justify-center text-warning text-sm"><i class="fa-solid fa-hand-holding-dollar"></i></span>
+                                {{ t('lent_money_title') }}
+                            </h3>
+                            <p class="text-textMuted text-xs mt-0.5">{{ t('lent_money_desc') }}</p>
+                        </div>
+                        <button @click="openModal('lentMoney')" class="flex items-center gap-2 bg-warning/20 hover:bg-warning/30 text-warning border border-warning/30 px-4 py-2.5 rounded-xl transition text-sm font-semibold">
+                            <i class="fa-solid fa-plus"></i>{{ t('add_lent') }}
+                        </button>
+                    </div>
+
+                    <!-- Lent Total Summary Card -->
+                    <div v-if="appData.lentMoneys && appData.lentMoneys.some(l => !l.paid)" class="stat-card bg-card p-4 rounded-2xl border border-warning/25 mb-4 relative overflow-hidden">
+                        <div class="absolute right-0 top-0 w-24 h-24 rounded-full opacity-10 -mr-6 -mt-6" style="background:radial-gradient(circle,#f59e0b,transparent)"></div>
+                        <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider">{{ t('total_lent') }}</p>
+                        <h2 class="text-2xl font-black text-warning mt-1">{{ formatMoney(totalLentActive) }}</h2>
+                    </div>
+
+                    <div v-if="!appData.lentMoneys || appData.lentMoneys.length === 0" class="text-center py-10 text-slate-500 border border-dashed border-slate-800 rounded-2xl">
+                        <i class="fa-solid fa-hand-holding-dollar text-3xl mb-3 opacity-30 block"></i>{{ t('no_lent') }}
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div v-for="lent in appData.lentMoneys" :key="lent.id"
+                             class="bg-card p-5 rounded-2xl border relative group shadow-sm slide-up transition"
+                             :class="lent.paid ? 'border-success/25 opacity-70' : 'border-warning/25'">
+                            <div class="absolute top-4 right-4 flex gap-2">
+                                <button @click="deleteLentMoney(lent.id)" class="text-slate-600 hover:text-danger text-sm transition"><i class="fa-solid fa-trash text-xs"></i></button>
+                            </div>
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-11 h-11 rounded-xl flex items-center justify-center text-white shadow-lg flex-shrink-0"
+                                     :style="lent.paid ? 'background:linear-gradient(135deg,#10b981,#059669)' : 'background:linear-gradient(135deg,#f59e0b,#d97706)'">
+                                    <i class="fa-solid text-sm" :class="lent.paid ? 'fa-check' : 'fa-user-clock'"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <h4 class="font-bold text-white truncate">{{ lent.name }}</h4>
+                                    <p class="text-xs text-slate-500">{{ formatDate(lent.date) }}<span v-if="lent.note"> · {{ lent.note }}</span></p>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <p class="text-xl font-black" :class="lent.paid ? 'text-success' : 'text-warning'">{{ formatMoney(lent.amount) }}</p>
+                                <div v-if="lent.paid" class="text-center text-success font-bold py-1.5 px-4 bg-success/10 rounded-xl text-sm">{{ t('lent_paid') }}</div>
+                                <button v-else @click="markLentPaid(lent.id)" class="bg-slate-800 hover:bg-success hover:text-white text-slate-300 py-2 px-4 rounded-xl font-semibold transition text-sm flex items-center gap-1.5">
+                                    <i class="fa-solid fa-check-circle text-xs"></i>{{ t('mark_paid') }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== TRIPS ===== -->
+            <section v-show="currentSection === 'trips'" class="fade-in p-4 md:p-8 space-y-5 max-w-6xl mx-auto">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">{{ t('trips_title') }}</h2>
+                        <p class="text-textMuted text-sm">{{ t('trips_desc') }}</p>
+                    </div>
+                    <button @click="openModal('trip')" class="flex items-center gap-2 bg-secondary hover:bg-indigo-600 text-white px-5 py-2.5 rounded-xl shadow-lg shadow-secondary/20 transition text-sm font-semibold">
+                        <i class="fa-solid fa-plus"></i>{{ t('create_trip') }}
+                    </button>
+                </div>
+                <div v-if="appData.trips.length === 0" class="text-center py-12 text-slate-500 border border-dashed border-slate-800 rounded-2xl">
+                    <i class="fa-solid fa-map-location-dot text-4xl mb-3 opacity-30 block"></i>{{ t('no_trips') }}
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div v-for="trip in appData.trips" :key="trip.id" class="bg-card p-5 rounded-2xl border border-slate-800/60 relative group hover:border-slate-600 transition shadow-sm slide-up">
+                        <div class="absolute top-4 right-4 flex gap-2">
+                            <button @click="editTrip(trip)" class="text-primary hover:text-blue-400 text-sm transition"><i class="fa-solid fa-pen text-xs"></i></button>
+                            <button @click="deleteTrip(trip.id)" class="text-slate-600 hover:text-danger text-sm transition"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-11 h-11 rounded-xl flex items-center justify-center text-white shadow-lg" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
+                                <i class="fa-solid fa-map-location text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-white">{{ trip.name }}</h3>
+                                <p class="text-xs text-slate-500">{{ t('budget') }}: {{ formatMoney(tripBudget(trip)) }}</p>
+                            </div>
+                        </div>
+                        <div class="flex justify-between text-sm mb-2">
+                            <span class="text-slate-400">{{ t('spent') }}: <span class="text-white font-semibold">{{ formatMoney(tripSpent(trip)) }}</span></span>
+                            <span class="font-bold" :class="tripLeft(trip) < 0 ? 'text-danger' : 'text-success'">{{ formatMoney(tripLeft(trip)) }} {{ t('left') }}</span>
+                        </div>
+                        <div class="progress-bar mb-4"><div class="progress-fill" :class="tripPctClass(trip)" :style="{ width: Math.min(tripPct(trip), 100) + '%' }"></div></div>
+                        <button @click="quickAdd('trip', trip.id)" class="w-full py-2.5 rounded-xl border border-slate-700 text-slate-300 text-sm hover:bg-slate-700 transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-plus-circle text-xs"></i>{{ t('add_record') }}
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== SAVINGS ===== -->
+            <section v-show="currentSection === 'savings'" class="fade-in p-4 md:p-8 space-y-5 max-w-6xl mx-auto">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">{{ t('savings_title') }}</h2>
+                        <p class="text-textMuted text-sm">{{ t('savings_desc') }}</p>
+                    </div>
+                    <button @click="openModal('saving')" class="flex items-center gap-2 bg-info hover:bg-cyan-600 text-white px-5 py-2.5 rounded-xl shadow-lg shadow-info/20 transition text-sm font-semibold">
+                        <i class="fa-solid fa-plus"></i>{{ t('new_goal') }}
+                    </button>
+                </div>
+                <div v-if="appData.savings.length === 0" class="text-center py-12 text-slate-500 border border-dashed border-slate-800 rounded-2xl">
+                    <i class="fa-solid fa-piggy-bank text-4xl mb-3 opacity-30 block"></i>{{ t('no_savings') }}
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div v-for="sav in appData.savings" :key="sav.id" class="bg-card p-5 rounded-2xl border border-slate-800/60 relative group hover:border-slate-600 transition shadow-sm slide-up">
+                        <div class="absolute top-4 right-4 flex gap-2">
+                            <button @click="editSaving(sav)" class="text-primary hover:text-blue-400 text-sm transition"><i class="fa-solid fa-pen text-xs"></i></button>
+                            <button @click="deleteSaving(sav.id)" class="text-slate-600 hover:text-danger text-sm transition"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-11 h-11 rounded-xl flex items-center justify-center text-white shadow-lg" style="background:linear-gradient(135deg,#06b6d4,#3b82f6)">
+                                <i class="fa-solid fa-bullseye text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-white">{{ sav.name }}</h3>
+                                <p class="text-xs text-slate-500">{{ t('target_amount') }}: {{ formatMoney(sav.target) }}</p>
+                            </div>
+                        </div>
+                        <div class="flex justify-between text-sm mb-2">
+                            <span class="text-slate-400">{{ t('saved') }}: <span class="text-success font-bold">{{ formatMoney(savingSaved(sav)) }}</span></span>
+                            <span class="text-slate-500">{{ Math.round(savingPct(sav)) }}%</span>
+                        </div>
+                        <div class="progress-bar mb-4"><div class="progress-fill bg-info" :style="{ width: Math.min(savingPct(sav), 100) + '%' }"></div></div>
+                        <button @click="quickAdd('sav', sav.id)" class="w-full py-2.5 rounded-xl border border-slate-700 text-slate-300 text-sm hover:bg-slate-700 transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-coins text-xs"></i>{{ t('add_contribution') }}
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== REPORTS ===== -->
+            <section v-show="currentSection === 'reports'" class="fade-in p-4 md:p-8 space-y-5 max-w-6xl mx-auto">
+                <div class="flex flex-col md:flex-row justify-between items-end gap-4 border-b border-slate-800/60 pb-5">
+                    <h2 class="text-2xl font-bold text-white">{{ t('nav_reports') }}</h2>
+                    <div class="flex gap-2 flex-wrap">
+                        <select v-model="reportWalletFilter" @change="updateReports()" class="bg-card border border-slate-700 text-white text-sm rounded-xl px-3 py-2 focus:outline-none">
+                            <option value="">{{ t('all_wallets_filter') }}</option>
+                            <option v-for="w in appData.wallets" :key="w.id" :value="w.id">{{ w.name }}</option>
+                        </select>
+                        <select v-model="reportRange" @change="updateReports()" class="bg-card border border-slate-700 text-white text-sm rounded-xl px-3 py-2 focus:outline-none">
+                            <option value="this_month">{{ t('this_month') }}</option>
+                            <option value="last_month">{{ t('last_month') }}</option>
+                            <option value="last_7">{{ t('last_7') }}</option>
+                            <option value="last_3m">{{ t('last_3m') }}</option>
+                            <option value="all_time">{{ t('all_time') }}</option>
+                        </select>
+                        <button @click="downloadReportPDF()" class="flex items-center gap-2 bg-danger hover:bg-red-600 text-white px-4 py-2 rounded-xl text-sm">
+                            <i class="fa-solid fa-file-pdf"></i>{{ t('export_pdf') }}
+                        </button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="bg-card p-4 rounded-xl border border-slate-800/60 text-center">
+                        <p class="text-xs text-slate-500">{{ t('income') }}</p>
+                        <p class="text-lg font-bold text-success">{{ formatMoney(reportIncome) }}</p>
+                    </div>
+                    <div class="bg-card p-4 rounded-xl border border-slate-800/60 text-center">
+                        <p class="text-xs text-slate-500">{{ t('expenses') }}</p>
+                        <p class="text-lg font-bold text-danger">{{ formatMoney(reportExpense) }}</p>
+                    </div>
+                    <div class="bg-card p-4 rounded-xl border border-slate-800/60 text-center">
+                        <p class="text-xs text-slate-500">{{ t('net_savings') }}</p>
+                        <p class="text-lg font-bold text-primary">{{ formatMoney(reportIncome - reportExpense) }}</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                    <div class="bg-card p-5 rounded-2xl border border-slate-800/60">
+                        <h4 class="font-bold text-slate-300 mb-4 text-sm">{{ t('spending_by_cat') }}</h4>
+                        <div class="h-56 flex justify-center"><canvas ref="chartPie"></canvas></div>
+                    </div>
+                    <div class="bg-card p-5 rounded-2xl border border-slate-800/60">
+                        <h4 class="font-bold text-slate-300 mb-4 text-sm">{{ t('income_vs_exp') }}</h4>
+                        <div class="h-56"><canvas ref="chartBar"></canvas></div>
+                    </div>
+                </div>
+                <div class="bg-card p-5 rounded-2xl border border-slate-800/60">
+                    <h4 class="font-bold text-slate-300 mb-4 text-sm">{{ t('monthly_trend') }}</h4>
+                    <div class="h-56"><canvas ref="chartLine"></canvas></div>
+                </div>
+                <!-- Category Budget Progress -->
+                <div class="bg-card p-5 rounded-2xl border border-slate-800/60">
+                    <h4 class="font-bold text-slate-300 mb-4 text-sm">{{ t('cat_budget_progress') }}</h4>
+                    <div class="space-y-4">
+                        <div v-for="cat in categoriesWithBudget" :key="cat.name" class="cat-budget-bar">
+                            <div class="flex justify-between items-center mb-1.5">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-7 h-7 rounded-lg flex items-center justify-center text-xs flex-shrink-0" :class="catStyle(cat.name, false).color">
+                                        <i class="fa-solid text-xs" :class="catStyle(cat.name, false).icon"></i>
+                                    </div>
+                                    <span class="text-sm font-medium text-white">{{ cat.name }}</span>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-xs font-bold" :class="cat.pct > 100 ? 'text-danger' : cat.pct > 80 ? 'text-warning' : 'text-slate-300'">{{ formatMoney(cat.spent) }}</span>
+                                    <span class="text-xs text-slate-500"> / {{ formatMoney(cat.budget) }}</span>
+                                </div>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" :class="cat.pct > 100 ? 'bg-danger' : cat.pct > 80 ? 'bg-warning' : 'bg-primary'" :style="{ width: Math.min(cat.pct, 100) + '%' }"></div>
+                            </div>
+                        </div>
+                        <p v-if="categoriesWithBudget.length === 0" class="text-center text-slate-500 text-sm py-4">{{ t('no_cat_budgets') }}</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== SETTINGS ===== -->
+            <section v-show="currentSection === 'settings'" class="fade-in p-4 md:p-8 space-y-5 max-w-2xl mx-auto">
+                <h2 class="text-2xl font-bold text-white">{{ t('nav_settings') }}</h2>
+
+                <!-- Language -->
+                <div class="bg-card p-5 rounded-2xl border border-slate-800/60 space-y-3">
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-language text-primary"></i>{{ t('language') }}</h3>
+                    <select v-model="appData.settings.lang" @change="saveData()" class="w-full bg-dark border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-primary focus:outline-none">
+                        <option value="en">🇬🇧 English</option>
+                        <option value="si">🇱🇰 සිංහල (Sinhala)</option>
+                        <option value="ta">🇱🇰 தமிழ் (Tamil)</option>
+                        <option value="hi">🇮🇳 हिन्दी (Hindi)</option>
+                    </select>
+                </div>
+
+                <!-- Currency -->
+                <div class="bg-card p-5 rounded-2xl border border-slate-800/60 space-y-3">
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-coins text-warning"></i>{{ t('curr_symbol') }}</h3>
+                    <select v-model="appData.settings.currency" @change="saveData()" class="w-full bg-dark border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-primary focus:outline-none">
+                        <option value="LKR">LKR - Rs (Sri Lanka)</option>
+                        <option value="INR">INR - ₹ (India)</option>
+                        <option value="USD">USD - $ (United States)</option>
+                        <option value="EUR">EUR - € (Eurozone)</option>
+                        <option value="GBP">GBP - £ (UK)</option>
+                        <option value="AED">AED - د.إ (UAE)</option>
+                        <option value="SAR">SAR - ﷼ (Saudi)</option>
+                        <option value="SGD">SGD - S$ (Singapore)</option>
+                        <option value="MYR">MYR - RM (Malaysia)</option>
+                        <option value="AUD">AUD - $ (Australia)</option>
+                        <option value="JPY">JPY - ¥ (Japan)</option>
+                        <option value="CAD">CAD - $ (Canada)</option>
+                        <option value="PKR">PKR - Rs (Pakistan)</option>
+                        <option value="THB">THB - ฿ (Thailand)</option>
+                        <option value="IDR">IDR - Rp (Indonesia)</option>
+                        <option value="QAR">QAR - ر.ق (Qatar)</option>
+                        <option value="KWD">KWD - د.ك (Kuwait)</option>
+                        <option value="TRY">TRY - ₺ (Turkey)</option>
+                        <option value="ZAR">ZAR - R (South Africa)</option>
+                        <option value="BRL">BRL - R$ (Brazil)</option>
+                    </select>
+                </div>
+
+                <!-- Appearance -->
+                <div class="bg-card p-5 rounded-2xl border border-slate-800/60 space-y-4">
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-palette text-secondary"></i>{{ t('appearance') }}</h3>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-white">{{ t('light_mode') }}</p>
+                            <p class="text-xs text-slate-500">{{ t('light_mode_desc') }}</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" v-model="isLightMode" @change="toggleTheme()" class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Global Budget -->
+                <div class="bg-card p-5 rounded-2xl border border-slate-800/60 space-y-3">
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-chart-simple text-success"></i>{{ t('budget_limit') }}</h3>
+                    <div class="flex gap-2">
+                        <input type="number" v-model="appData.settings.budget" class="flex-1 bg-dark border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-primary focus:outline-none text-lg font-bold">
+                        <button @click="saveBudget()" class="bg-success/20 hover:bg-success/30 text-success px-4 py-2 rounded-xl text-sm font-semibold">{{ t('save_btn_short') }}</button>
+                    </div>
+                </div>
+
+                <!-- Category Budgets -->
+                <div class="bg-card p-5 rounded-2xl border border-slate-800/60 space-y-4">
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-tags text-info"></i>{{ t('cat_budgets') }}</h3>
+                    <p class="text-xs text-slate-500">{{ t('cat_budgets_desc') }}</p>
+                    <div class="space-y-3 max-h-72 overflow-y-auto pr-1">
+                        <div v-for="cat in expenseCategories" :key="cat" class="flex items-center gap-3">
+                            <div class="cat-icon flex-shrink-0 w-9 h-9 rounded-lg" :class="catStyle(cat, false).color">
+                                <i class="fa-solid text-xs" :class="catStyle(cat, false).icon"></i>
+                            </div>
+                            <span class="text-sm text-white flex-1 min-w-0 truncate">{{ cat }}</span>
+                            <input type="number" :value="appData.settings.categoryBudgets[cat] || 0"
+                                   @change="setCategoryBudget(cat, $event.target.value)"
+                                   class="w-32 bg-dark border border-slate-700 rounded-xl px-3 py-2 text-white text-sm focus:border-primary focus:outline-none text-right">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security -->
+                <div class="bg-card p-5 rounded-2xl border border-slate-800/60 space-y-4">
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-shield text-danger"></i>{{ t('app_security') }}</h3>
+                    <div class="flex items-center justify-between py-1">
+                        <div>
+                            <p class="text-sm font-medium text-white">{{ t('enable_pin') }}</p>
+                            <p class="text-xs text-slate-500">{{ t('pin_desc') }}</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" v-model="appData.settings.pinEnabled" @change="toggleSecurity('pin')" class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                        </label>
+                    </div>
+                    <div class="flex items-center justify-between py-1">
+                        <div>
+                            <p class="text-sm font-medium text-white">{{ t('bio_login') }}</p>
+                            <p class="text-xs text-slate-500">{{ t('bio_desc') }}</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" v-model="appData.settings.bioEnabled" @change="toggleSecurity('bio')" class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-success"></div>
+                        </label>
+                    </div>
+                    <form @submit.prevent="changePIN()" class="space-y-3 pt-2 border-t border-slate-800">
+                        <p class="text-xs font-semibold text-slate-400 uppercase">{{ t('change_pin') }}</p>
+                        <input type="password" v-model="pinForm.current" maxlength="4" :placeholder="t('current_pin_ph')" class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2.5 text-white text-sm focus:border-primary focus:outline-none">
+                        <div class="grid grid-cols-2 gap-3">
+                            <input type="password" v-model="pinForm.newPin" maxlength="4" :placeholder="t('new_pin_ph')" class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2.5 text-white text-sm focus:border-primary focus:outline-none">
+                            <input type="password" v-model="pinForm.confirm" maxlength="4" :placeholder="t('confirm_pin_ph')" class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2.5 text-white text-sm focus:border-primary focus:outline-none">
+                        </div>
+                        <button type="submit" class="bg-slate-700 hover:bg-primary text-white px-4 py-2 rounded-xl text-sm transition">{{ t('update_pin') }}</button>
+                    </form>
+                </div>
+
+                <!-- Data Management -->
+                <div class="bg-card p-5 rounded-2xl border border-slate-800/60 space-y-3">
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-database text-info"></i>{{ t('data_mgt') }}</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <button @click="exportData()" class="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-xl text-sm transition">
+                            <i class="fa-solid fa-file-csv"></i>{{ t('export_csv') }}
+                        </button>
+                        <button @click="exportJSON()" class="flex items-center gap-2 bg-primary/20 hover:bg-primary/30 text-primary border border-primary/20 px-4 py-2 rounded-xl text-sm transition">
+                            <i class="fa-solid fa-file-export"></i>{{ t('backup_json') }}
+                        </button>
+                        <button @click="clearData()" class="flex items-center gap-2 bg-danger/10 hover:bg-danger/20 text-danger border border-danger/20 px-4 py-2 rounded-xl text-sm transition">
+                            <i class="fa-solid fa-trash"></i>{{ t('reset_data') }}
+                        </button>
+                    </div>
+                    <div class="border-t border-slate-800 pt-3">
+                        <label class="block text-xs text-slate-500 mb-2">{{ t('restore_backup') }}</label>
+                        <div class="flex gap-2">
+                            <input type="file" ref="importFile" accept=".json" class="block w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:bg-slate-800 file:text-white hover:file:bg-slate-700">
+                            <button @click="importData()" class="bg-success/20 hover:bg-success/30 text-success px-3 py-2 rounded-lg text-xs font-bold uppercase">{{ t('import_btn') }}</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- About -->
+                <div class="bg-card p-5 rounded-2xl border border-slate-800/60 text-center">
+                    <img src="icon.jpg" alt="Alone Management" class="w-12 h-12 mx-auto mb-3 rounded-xl object-cover shadow-lg">
+                    <p class="font-bold text-white">Alone Management</p>
+                    <p class="text-xs text-slate-500 mt-1">Pro V5 · Vue 3 · Built with ❤️</p>
+                </div>
+            </section>
+
+        </div><!-- end main-scroll -->
+
+        <!-- ===== BOTTOM NAV (Mobile) ===== -->
+        <div id="mobile-bottom-nav" class="md:hidden fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-xl border-t border-slate-800/60 z-20 pb-safe">
+            <div class="flex justify-around items-center px-2 pt-2 pb-2">
+                <button v-for="item in bottomNavItems" :key="item.id" @click="nav(item.id)" class="bottom-nav-item flex flex-col items-center px-3 py-1.5 rounded-xl transition" :class="currentSection === item.id ? 'bn-active' : 'text-slate-500'">
+                    <i class="text-lg fa-solid" :class="item.icon"></i>
+                    <div class="bn-dot"></div>
+                </button>
+                <button @click="nav('settings')" class="bottom-nav-item flex flex-col items-center px-3 py-1.5 rounded-xl transition" :class="currentSection === 'settings' ? 'bn-active' : 'text-slate-500'">
+                    <i class="fa-solid fa-gear text-lg"></i>
+                    <div class="bn-dot"></div>
+                </button>
+            </div>
+        </div>
+    </main>
+</div><!-- end main app -->
+
+<!-- ===== MODALS ===== -->
+
+<!-- Transaction Modal -->
+<div v-if="modals.transaction" class="fixed inset-0 bg-black/80 z-50 flex items-end md:items-center justify-center p-0 md:p-4 backdrop-blur-sm">
+    <div class="bg-card w-full md:max-w-md rounded-t-3xl md:rounded-2xl border border-slate-700/60 shadow-2xl p-6 fade-in max-h-[95vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-5">
+            <h3 class="text-lg font-bold text-white">{{ editingTransactionId ? t('edit_transaction') : t('add_transaction') }}</h3>
+            <button @click="closeModal('transaction')" class="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form @submit.prevent="submitTransaction()" class="space-y-4">
+            <div class="grid grid-cols-2 gap-2">
+                <label class="cursor-pointer">
+                    <input type="radio" v-model="txForm.type" value="expense" class="peer hidden">
+                    <div class="py-2.5 text-center rounded-xl border border-slate-700 text-slate-400 peer-checked:bg-danger peer-checked:text-white peer-checked:border-danger transition font-medium text-sm">{{ t('expense') }}</div>
+                </label>
+                <label class="cursor-pointer">
+                    <input type="radio" v-model="txForm.type" value="income" class="peer hidden">
+                    <div class="py-2.5 text-center rounded-xl border border-slate-700 text-slate-400 peer-checked:bg-success peer-checked:text-white peer-checked:border-success transition font-medium text-sm">{{ t('income') }}</div>
+                </label>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs text-slate-500 mb-1">{{ t('date') }}</label>
+                    <input type="date" v-model="txForm.date" required class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2.5 text-white text-sm focus:border-primary focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-500 mb-1">{{ t('time') }}</label>
+                    <input type="time" v-model="txForm.time" required class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2.5 text-white text-sm focus:border-primary focus:outline-none">
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">{{ t('amount') }}</label>
+                <input type="number" v-model="txForm.amount" step="0.01" min="0.01" required class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2.5 text-white text-xl font-bold focus:border-primary focus:outline-none">
+            </div>
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">{{ t('category') }}</label>
+                <select v-model="txForm.category" @change="handleCategoryChange" class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2.5 text-white text-sm focus:border-primary focus:outline-none">
+                    <option v-for="cat in appData.categories" :key="cat" :value="cat">{{ cat }}</option>
+                    <option value="NEW_CAT" class="font-bold">+ Custom Category</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">{{ t('wallet_label') }}</label>
+                <select v-model="txForm.walletId" class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2.5 text-white text-sm focus:border-primary focus:outline-none">
+                    <option value="">{{ t('no_wallet') }}</option>
+                    <option v-for="w in appData.wallets" :key="w.id" :value="w.id">{{ w.name }}</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">{{ t('note') }}</label>
+                <input type="text" v-model="txForm.note" :placeholder="t('note_ph')" class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2.5 text-white text-sm focus:border-primary focus:outline-none">
+            </div>
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">{{ t('link_goal') }}</label>
+                <select v-model="txForm.linkVal" class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2.5 text-white text-sm focus:border-primary focus:outline-none">
+                    <option value="">{{ t('personal_wallet') }}</option>
+                    <option v-for="tr in appData.trips" :key="'trip-'+tr.id" :value="'trip-'+tr.id">{{ t('trip_prefix') }} {{ tr.name }}</option>
+                    <option v-for="sv in appData.savings" :key="'sav-'+sv.id" :value="'sav-'+sv.id">{{ t('sav_prefix') }} {{ sv.name }}</option>
+                </select>
+            </div>
+            <!-- Receipt Image -->
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">{{ t('receipt_image') }}</label>
+                <div class="flex items-center gap-3">
+                    <label class="flex-1 cursor-pointer">
+                        <div class="flex items-center gap-2 bg-dark border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-slate-400 hover:border-primary transition">
+                            <i class="fa-solid fa-camera text-primary"></i>
+                            <span>{{ txForm.receiptImage ? t('receipt_change') : t('receipt_upload') }}</span>
+                        </div>
+                        <input type="file" accept="image/*" class="hidden" @change="handleReceiptUpload">
+                    </label>
+                    <div v-if="txForm.receiptImage" class="relative">
+                        <img :src="txForm.receiptImage" alt="Receipt" class="w-12 h-12 object-cover rounded-xl border border-slate-600 cursor-pointer" @click="viewingReceiptUrl = txForm.receiptImage">
+                        <button type="button" @click="txForm.receiptImage = null" class="absolute -top-1.5 -right-1.5 w-4 h-4 bg-danger rounded-full flex items-center justify-center text-white text-[10px]"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <input type="checkbox" v-model="txForm.isRecurring" id="t-recurring" class="w-4 h-4 rounded bg-dark border-slate-600 accent-primary">
+                <label for="t-recurring" class="text-xs text-slate-400">{{ t('recurring') }}</label>
+            </div>
+            <button type="submit" class="w-full bg-primary hover:bg-blue-600 text-white py-3 rounded-xl font-bold mt-1 shadow-lg shadow-primary/20">{{ editingTransactionId ? t('update_btn') : t('save_btn') }}</button>
+        </form>
+    </div>
+</div>
+
+<!-- Transfer Modal -->
+<div v-if="modals.transfer" class="fixed inset-0 bg-black/80 z-50 flex items-end md:items-center justify-center p-0 md:p-4 backdrop-blur-sm">
+    <div class="bg-card w-full md:max-w-md rounded-t-3xl md:rounded-2xl border border-slate-700/60 shadow-2xl p-6 fade-in">
+        <div class="flex justify-between items-center mb-5">
+            <h3 class="text-lg font-bold text-white">{{ t('transfer_funds') }}</h3>
+            <button @click="closeModal('transfer')" class="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form @submit.prevent="submitTransfer()" class="space-y-4">
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">{{ t('from_wallet') }}</label>
+                <select v-model="transferForm.fromWalletId" required class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2.5 text-white text-sm focus:border-primary focus:outline-none">
+                    <option value="" disabled>{{ t('select_wallet') }}</option>
+                    <option v-for="w in appData.wallets" :key="w.id" :value="w.id">{{ w.name }} ({{ formatMoney(walletBalance(w.id)) }})</option>
+                </select>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="flex-1 h-px bg-slate-700"></div>
+                <div class="w-9 h-9 bg-slate-800 rounded-xl flex items-center justify-center text-primary text-sm"><i class="fa-solid fa-arrow-down"></i></div>
+                <div class="flex-1 h-px bg-slate-700"></div>
+            </div>
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">{{ t('to_wallet') }}</label>
+                <select v-model="transferForm.toWalletId" required class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2.5 text-white text-sm focus:border-primary focus:outline-none">
+                    <option value="" disabled>{{ t('select_wallet') }}</option>
+                    <option v-for="w in appData.wallets" :key="w.id" :value="w.id" :disabled="w.id === transferForm.fromWalletId">{{ w.name }}</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">{{ t('amount') }}</label>
+                <input type="number" v-model="transferForm.amount" step="0.01" min="0.01" required class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2.5 text-white text-xl font-bold focus:border-primary focus:outline-none">
+            </div>
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">{{ t('note') }}</label>
+                <input type="text" v-model="transferForm.note" :placeholder="t('transfer_note_ph')" class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2.5 text-white text-sm focus:border-primary focus:outline-none">
+            </div>
+            <button type="submit" class="w-full bg-primary hover:bg-blue-600 text-white py-3 rounded-xl font-bold shadow-lg shadow-primary/20">{{ t('confirm_transfer') }}</button>
+        </form>
+    </div>
+</div>
+
+<!-- Trip Modal -->
+<div v-if="modals.trip" class="fixed inset-0 bg-black/80 z-50 flex items-end md:items-center justify-center p-0 md:p-4 backdrop-blur-sm">
+    <div class="bg-card w-full md:max-w-md rounded-t-3xl md:rounded-2xl border border-slate-700/60 shadow-2xl p-6 fade-in">
+        <div class="flex justify-between items-center mb-5">
+            <h3 class="text-lg font-bold text-white">{{ t('create_trip') }}</h3>
+            <button @click="closeModal('trip')" class="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form @submit.prevent="submitTrip()" class="space-y-4">
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">{{ t('trip_name') }}</label>
+                <input type="text" v-model="tripForm.name" required :placeholder="t('trip_name_ph')" class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:border-primary focus:outline-none">
+            </div>
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">{{ t('budget_alloc') }}</label>
+                <input type="number" v-model="tripForm.budget" required class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2.5 text-white text-xl font-bold focus:border-primary focus:outline-none">
+            </div>
+            <button type="submit" class="w-full bg-secondary hover:bg-indigo-600 text-white py-3 rounded-xl font-bold">{{ t('start_planning') }}</button>
+        </form>
+    </div>
+</div>
+
+<!-- Saving Modal -->
+<div v-if="modals.saving" class="fixed inset-0 bg-black/80 z-50 flex items-end md:items-center justify-center p-0 md:p-4 backdrop-blur-sm">
+    <div class="bg-card w-full md:max-w-md rounded-t-3xl md:rounded-2xl border border-slate-700/60 shadow-2xl p-6 fade-in">
+        <div class="flex justify-between items-center mb-5">
+            <h3 class="text-lg font-bold text-white">{{ t('new_goal') }}</h3>
+            <button @click="closeModal('saving')" class="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form @submit.prevent="submitSaving()" class="space-y-4">
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">{{ t('goal_name') }}</label>
+                <input type="text" v-model="savingForm.name" required :placeholder="t('goal_name_ph')" class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:border-primary focus:outline-none">
+            </div>
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">{{ t('target_amount') }}</label>
+                <input type="number" v-model="savingForm.target" required class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2.5 text-white text-xl font-bold focus:border-primary focus:outline-none">
+            </div>
+            <button type="submit" class="w-full bg-info hover:bg-cyan-600 text-white py-3 rounded-xl font-bold">{{ t('create_goal') }}</button>
+        </form>
+    </div>
+</div>
+
+<!-- Loan Modal -->
+<div v-if="modals.loan" class="fixed inset-0 bg-black/80 z-50 flex items-end md:items-center justify-center p-0 md:p-4 backdrop-blur-sm">
+    <div class="bg-card w-full md:max-w-md rounded-t-3xl md:rounded-2xl border border-slate-700/60 shadow-2xl p-6 fade-in max-h-[92vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-5">
+            <h3 class="text-lg font-bold text-white">{{ editingLoanId ? t('edit_loan_title') : t('add_loan') }}</h3>
+            <button @click="closeModal('loan')" class="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form @submit.prevent="submitLoan()" class="space-y-4">
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">{{ t('loan_name_lbl') }}</label>
+                <input type="text" v-model="loanForm.name" required :placeholder="t('loan_name_ph')" class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:border-primary focus:outline-none">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs text-slate-500 mb-1">{{ t('loan_type') }}</label>
+                    <select v-model="loanForm.type" class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2.5 text-white text-sm focus:border-primary focus:outline-none">
+                        <option>Personal Loan</option>
+                        <option>Credit Card</option>
+                        <option>Vehicle Loan</option>
+                        <option>Mortgage</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-500 mb-1">{{ t('principal') }}</label>
+                    <input type="number" v-model="loanForm.amount" required min="1" step="0.01" class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2.5 text-white font-bold focus:border-primary focus:outline-none">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs text-slate-500 mb-1">{{ t('interest_rate') }}</label>
+                    <input type="number" v-model="loanForm.rate" step="0.1" min="0" max="100" required class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:border-primary focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-500 mb-1">{{ t('duration') }}</label>
+                    <input type="number" v-model="loanForm.months" required min="1" step="1" class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:border-primary focus:outline-none">
+                </div>
+            </div>
+            <div class="p-3 bg-dark rounded-xl border border-slate-700">
+                <p class="text-xs text-slate-500">{{ t('est_installment') }}</p>
+                <p class="text-xl font-bold text-purple">{{ formatMoney(loanCalcEmi) }}</p>
+                <p class="text-xs text-slate-500 mt-1">{{ t('total_payback') }} {{ formatMoney(loanCalcTotal) }}</p>
+            </div>
+            <button type="submit" class="w-full bg-purple hover:bg-purple-600 text-white py-3 rounded-xl font-bold shadow-lg shadow-purple/20">{{ editingLoanId ? t('update_btn') : t('add_loan_btn') }}</button>
+        </form>
+    </div>
+</div>
+<!-- Add/Edit Wallet Modal -->
+<div v-if="modals.addWallet" class="fixed inset-0 bg-black/80 z-50 flex items-end md:items-center justify-center p-0 md:p-4 backdrop-blur-sm">
+    <div class="bg-card w-full md:max-w-md rounded-t-3xl md:rounded-2xl border border-slate-700/60 shadow-2xl p-6 fade-in">
+        <div class="flex justify-between items-center mb-5">
+            <h3 class="text-lg font-bold text-white">{{ editingWalletId ? t('edit_wallet') : t('add_wallet') }}</h3>
+            <button @click="closeModal('addWallet')" class="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form @submit.prevent="submitWallet()" class="space-y-4">
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">{{ t('wallet_name') }}</label>
+                <input type="text" v-model="walletForm.name" required placeholder="e.g. Savings Account" class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:border-primary focus:outline-none">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs text-slate-500 mb-1">{{ t('wallet_type') }}</label>
+                    <select v-model="walletForm.type" class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2.5 text-white text-sm focus:border-primary focus:outline-none">
+                        <option>Cash</option>
+                        <option>Bank</option>
+                        <option>Digital</option>
+                        <option>Credit</option>
+                        <option>Investment</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-500 mb-1">{{ t('wallet_color') }}</label>
+                    <input type="color" v-model="walletForm.color" class="w-full h-[42px] bg-dark border border-slate-700 rounded-xl px-2 py-1 cursor-pointer focus:border-primary focus:outline-none">
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs text-slate-500 mb-2">{{ t('wallet_icon') }}</label>
+                <div class="grid grid-cols-6 gap-2">
+                    <button type="button" v-for="ic in walletIcons" :key="ic" @click="walletForm.icon = ic"
+                        class="w-10 h-10 rounded-xl flex items-center justify-center text-sm transition"
+                        :class="walletForm.icon === ic ? 'bg-primary text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'">
+                        <i class="fa-solid" :class="ic"></i>
+                    </button>
+                </div>
+            </div>
+            <button type="submit" class="w-full bg-success hover:bg-green-600 text-white py-3 rounded-xl font-bold">{{ editingWalletId ? t('update_btn') : t('add_wallet') }}</button>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Trip Modal -->
+<div v-if="modals.editTrip" class="fixed inset-0 bg-black/80 z-50 flex items-end md:items-center justify-center p-0 md:p-4 backdrop-blur-sm">
+    <div class="bg-card w-full md:max-w-md rounded-t-3xl md:rounded-2xl border border-slate-700/60 shadow-2xl p-6 fade-in">
+        <div class="flex justify-between items-center mb-5">
+            <h3 class="text-lg font-bold text-white">{{ t('edit_trip') }}</h3>
+            <button @click="closeModal('editTrip')" class="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form @submit.prevent="submitEditTrip()" class="space-y-4">
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">{{ t('trip_name') }}</label>
+                <input type="text" v-model="editTripForm.name" required class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:border-primary focus:outline-none">
+            </div>
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">{{ t('budget_alloc') }}</label>
+                <input type="number" v-model="editTripForm.budget" required class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2.5 text-white text-xl font-bold focus:border-primary focus:outline-none">
+            </div>
+            <button type="submit" class="w-full bg-secondary hover:bg-indigo-600 text-white py-3 rounded-xl font-bold">{{ t('update_btn') }}</button>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Saving Modal -->
+<div v-if="modals.editSaving" class="fixed inset-0 bg-black/80 z-50 flex items-end md:items-center justify-center p-0 md:p-4 backdrop-blur-sm">
+    <div class="bg-card w-full md:max-w-md rounded-t-3xl md:rounded-2xl border border-slate-700/60 shadow-2xl p-6 fade-in">
+        <div class="flex justify-between items-center mb-5">
+            <h3 class="text-lg font-bold text-white">{{ t('edit_goal') }}</h3>
+            <button @click="closeModal('editSaving')" class="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form @submit.prevent="submitEditSaving()" class="space-y-4">
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">{{ t('goal_name') }}</label>
+                <input type="text" v-model="editSavingForm.name" required class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:border-primary focus:outline-none">
+            </div>
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">{{ t('target_amount') }}</label>
+                <input type="number" v-model="editSavingForm.target" required class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2.5 text-white text-xl font-bold focus:border-primary focus:outline-none">
+            </div>
+            <button type="submit" class="w-full bg-info hover:bg-cyan-600 text-white py-3 rounded-xl font-bold">{{ t('update_btn') }}</button>
+        </form>
+    </div>
+</div>
+<!-- Lent Money Modal -->
+<div v-if="modals.lentMoney" class="fixed inset-0 bg-black/80 z-50 flex items-end md:items-center justify-center p-0 md:p-4 backdrop-blur-sm">
+    <div class="bg-card w-full md:max-w-md rounded-t-3xl md:rounded-2xl border border-slate-700/60 shadow-2xl p-6 fade-in">
+        <div class="flex justify-between items-center mb-5">
+            <h3 class="text-lg font-bold text-white">{{ t('add_lent') }}</h3>
+            <button @click="closeModal('lentMoney')" class="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form @submit.prevent="submitLentMoney()" class="space-y-4">
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">{{ t('lent_to') }}</label>
+                <input type="text" v-model="lentForm.name" required :placeholder="t('lent_to_ph')" class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:border-primary focus:outline-none">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs text-slate-500 mb-1">{{ t('lent_amount') }}</label>
+                    <input type="number" v-model="lentForm.amount" step="0.01" min="0.01" required class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2.5 text-white text-lg font-bold focus:border-primary focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-500 mb-1">{{ t('lent_date') }}</label>
+                    <input type="date" v-model="lentForm.date" required class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2.5 text-white text-sm focus:border-primary focus:outline-none">
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">{{ t('lent_note') }}</label>
+                <input type="text" v-model="lentForm.note" :placeholder="t('lent_note_ph')" class="w-full bg-dark border border-slate-700 rounded-xl px-3 py-2.5 text-white text-sm focus:border-primary focus:outline-none">
+            </div>
+            <button type="submit" class="w-full bg-warning hover:bg-yellow-500 text-dark py-3 rounded-xl font-bold shadow-lg shadow-warning/20">{{ t('add_lent') }}</button>
+        </form>
+    </div>
+</div>
+
+</div><!-- end #app -->
+
+<style>
+.toast-slide-enter-active, .toast-slide-leave-active { transition: all 0.3s ease; }
+.toast-slide-enter-from { transform: translateX(110%); opacity: 0; }
+.toast-slide-leave-to { transform: translateX(110%); opacity: 0; }
+</style>
+
+<script>
+// ============================================================
+// TRANSLATIONS
+// ============================================================
+const TRANSLATIONS = {
+    en: {
+        nav_dashboard: "Dashboard", nav_wallet: "Transactions", nav_loans: "Loans & Credit",
+        nav_trips: "Trips", nav_savings: "Savings", nav_reports: "Analytics",
+        nav_settings: "Settings", nav_lock: "Lock App",
+        welcome: "Welcome Back", subtitle: "Secure Personal Finance",
+        wrong_pin: "❌ Wrong PIN! Try again.",
+        dash_desc: "Overview of your financial health.",
+        btn_new_trans: "New Transaction", total_balance: "Total Balance",
+        cash_hand: "Cash In Hand", income: "Income", expenses: "Expenses",
+        accumulated: "Total Accumulated", recent_activity: "Recent Activity",
+        view_all: "View All", no_tx: "No transactions yet.",
+        wallet_title: "Transaction History", add_new: "Add New",
+        search_placeholder: "Search by note or category...",
+        start_date: "Start Date", end_date: "End Date",
+        no_results: "No transactions found in this range.",
+        loans_title: "Loans & Credit", loans_desc: "Track your debts and repayments.",
+        add_loan: "Add Loan/Card", total_debt: "Total Outstanding Debt",
+        monthly_liability: "Monthly Installments", no_loans: "You are debt-free! 🎉",
+        installment: "Installment", remaining: "Remaining",
+        paid_months: "Paid", pay_installment: "Pay Installment",
+        loan_paid: "Loan Fully Paid! 🎉",
+        trips_title: "Trip Planner", trips_desc: "Manage trip budgets separately.",
+        create_trip: "Create Trip", no_trips: "No trips yet. Plan your next adventure!",
+        budget: "Budget", spent: "Spent", left: "Left", add_record: "Add Record",
+        savings_title: "Savings Goals", savings_desc: "Save for your dreams.",
+        new_goal: "New Goal", no_savings: "No savings goals yet.",
+        saved: "Saved", add_contribution: "Add Contribution",
+        spending_by_cat: "Spending by Category", income_vs_exp: "Income vs Expense",
+        monthly_trend: "Monthly Trend (6 Months)", net_savings: "Net",
+        this_month: "This Month", last_month: "Last Month", last_7: "Last 7 Days",
+        last_3m: "Last 3 Months", all_time: "All Time", export_pdf: "Export PDF",
+        language: "Language", curr_symbol: "Currency", appearance: "Appearance",
+        light_mode: "Light Mode", light_mode_desc: "Switch to light theme",
+        budget_limit: "Monthly Budget Limit", app_security: "Security",
+        enable_pin: "Enable PIN Protection", pin_desc: "Require PIN on startup",
+        bio_login: "Biometric Unlock", bio_desc: "Fingerprint / Face ID",
+        change_pin: "Change PIN", update_pin: "Update PIN",
+        data_mgt: "Data Management", export_csv: "Export CSV",
+        backup_json: "Backup JSON", reset_data: "Reset All Data",
+        restore_backup: "Restore Backup (JSON File)", import_btn: "Import",
+        save_btn_short: "Save",
+        current_pin_ph: "Current PIN (Default: 1234)", new_pin_ph: "New PIN (4 digits)", confirm_pin_ph: "Confirm PIN",
+        note_ph: "Short description...", trip_name_ph: "e.g. Trip to Ella",
+        goal_name_ph: "e.g. New Laptop", loan_name_ph: "e.g. HNB Personal Loan",
+        add_transaction: "Add Transaction", edit_transaction: "Edit Transaction",
+        expense: "Expense", date: "Date", time: "Time", amount: "Amount",
+        category: "Category", note: "Note", link_goal: "Link to Trip / Goal",
+        recurring: "Repeat Monthly (Recurring)", save_btn: "Save Transaction",
+        update_btn: "Update Transaction", personal_wallet: "-- Personal Wallet --",
+        trip_prefix: "Trip:", sav_prefix: "Goal:",
+        trip_name: "Trip Name", budget_alloc: "Budget Allocation", start_planning: "Start Planning",
+        goal_name: "Goal Name", target_amount: "Target Amount", create_goal: "Create Goal",
+        loan_name_lbl: "Name / Bank", loan_type: "Type", principal: "Principal Amount",
+        interest_rate: "Interest Rate (% /Year)", duration: "Duration (Months)",
+        est_installment: "Estimated Monthly Installment:",
+        total_payback: "Total Payback:", calc_preview: "Calculate Preview", add_loan_btn: "Add Loan",
+        personal_loan: "Personal Loan", credit_card: "Credit Card",
+        vehicle_loan: "Vehicle Loan", mortgage: "Mortgage",
+        tx_saved: "Transaction Saved!", tx_updated: "Transaction Updated!",
+        tx_deleted: "Transaction Deleted.", trip_created: "Trip plan created!",
+        goal_created: "Savings goal created!", loan_added: "Loan added!",
+        installment_paid: "Installment Paid & Recorded!",
+        loan_deleted: "Loan deleted.", trip_deleted: "Trip deleted.",
+        goal_deleted: "Goal deleted.", pin_updated: "PIN Updated Securely!",
+        pin_incorrect: "Current PIN is incorrect!",
+        pin_invalid: "Invalid or mismatching PINs.",
+        bio_enabled: "Biometric Login Enabled! 🎉",
+        bio_disabled: "Biometric Login Disabled.",
+        pin_security_on: "PIN Security Enabled.", pin_security_off: "PIN Security Disabled.",
+        budget_saved: "Budget limit saved!",
+        generating_pdf: "Generating PDF...", pdf_success: "PDF Downloaded!",
+        confirm_pay: "Pay installment of {{amount}} for {{name}}?",
+        confirm_del_loan: "Delete this loan record?",
+        confirm_del_trip: "Delete trip? Records will remain.",
+        confirm_del_save: "Delete goal? Records will remain.",
+        confirm_del_tx: "Delete this transaction?",
+        confirm_reset: "WARNING: This will delete ALL your data! Backup first.",
+        restored_success: "Data Restored! App will reload.", invalid_file: "Invalid backup file.",
+        new_category: "Enter new category name:", pct_done: "% Done",
+        // New V5 keys
+        my_wallets: "My Wallets", wallets_desc: "Track balances across all accounts.",
+        transfer: "Transfer", transfer_funds: "Transfer Funds",
+        from_wallet: "From Account", to_wallet: "To Account",
+        select_wallet: "Select account", confirm_transfer: "Confirm Transfer",
+        transfer_note_ph: "e.g. Moving funds to bank...",
+        transfer_saved: "Transfer recorded!", all_wallets: "Across All Wallets",
+        wallet_label: "Wallet / Account", no_wallet: "-- Any / Unassigned --",
+        manage: "Manage",
+        cat_budgets: "Category Budgets", cat_budgets_desc: "Set monthly spending limits per category.",
+        cat_budget_progress: "Category Budget Progress (This Month)",
+        no_cat_budgets: "No category budgets set. Configure them in Settings.",
+        receipt_image: "Receipt / Proof", receipt_upload: "Attach Image",
+        receipt_change: "Change Image", recurring_added: "{{count}} recurring transaction(s) added.",
+        add_wallet: "Add Wallet", edit_wallet: "Edit Wallet", wallet_name: "Wallet Name",
+        wallet_type: "Type", wallet_color: "Color", wallet_icon: "Icon",
+        edit_trip: "Edit Trip", edit_goal: "Edit Goal",
+        wallet_updated: "Wallet updated!", wallet_added: "Wallet added!",
+        edit_loan_title: "Edit Loan / Card",
+        // Lent Money keys
+        lent_money_title: "Lent Money (Owed to Me)", lent_money_desc: "Track money you have lent to friends.",
+        add_lent: "Add Lent Entry", no_lent: "No lent money recorded. Use the button above to add.",
+        lent_to: "Person / Name", lent_amount: "Amount Lent", lent_note: "Note / Reason", lent_date: "Date Lent",
+        lent_to_ph: "e.g. John", lent_note_ph: "e.g. Lunch, Emergency...",
+        mark_paid: "Mark as Paid", lent_paid: "Settled ✓",
+        lent_added: "Lent entry recorded!", lent_deleted: "Entry removed.", lent_marked_paid: "Marked as settled!",
+        confirm_mark_paid: "Mark this as paid/settled?", confirm_del_lent: "Delete this lent money entry?",
+        total_lent: "Total Outstanding Lent",
+        // Report wallet filter keys
+        report_wallet_filter: "Filter by Wallet", all_wallets_filter: "All Wallets",
+    },
+    si: {
+        nav_dashboard: "මුල් පිටුව", nav_wallet: "ගනුදෙනු", nav_loans: "ණය & ක්‍රෙඩිට්",
+        nav_trips: "සංචාර", nav_savings: "ඉතිරිකිරීම්", nav_reports: "වාර්තා",
+        nav_settings: "සැකසුම්", nav_lock: "ලොක් කරන්න",
+        welcome: "නැවත පිළිගනිමු", subtitle: "ආරක්ෂිත මූල්‍ය කළමනාකරණය",
+        wrong_pin: "❌ PIN වැරදියි! නැවත උත්සාහ කරන්න.",
+        dash_desc: "ඔබගේ මූල්‍ය තත්ත්වය.",
+        btn_new_trans: "නව ගනුදෙනුවක්", total_balance: "මුළු ශේෂය",
+        cash_hand: "අතේ ඇති මුදල්", income: "ආදායම", expenses: "වියදම්",
+        accumulated: "මුළු එකතුව", recent_activity: "මෑත ගනුදෙනු",
+        view_all: "සියල්ල බලන්න", no_tx: "ගනුදෙනු නැත.",
+        wallet_title: "ගනුදෙනු ඉතිහාසය", add_new: "අලුත් එකක්",
+        search_placeholder: "සොයන්න...", start_date: "ආරම්භ", end_date: "අවසාන",
+        no_results: "ගනුදෙනු නොමැත.", loans_title: "ණය", loans_desc: "ණය ලුහුබඳින්න.",
+        add_loan: "ණයක් එකතු කරන්න", total_debt: "මුළු ණය", monthly_liability: "මාසික වාරිකය",
+        no_loans: "ණය රහිතයි! 🎉", installment: "වාරිකය", remaining: "ඉතිරිව",
+        paid_months: "ගෙවා ඇත", pay_installment: "වාරිකය ගෙවන්න", loan_paid: "ණය ගෙවා ඇත! 🎉",
+        trips_title: "සංචාර සැලසුම්", trips_desc: "සංචාර බජට් කළමනාකරණය.",
+        create_trip: "සංචාරයක් සාදන්න", no_trips: "සංචාර නොමැත.",
+        budget: "බජට්", spent: "වැය", left: "ඉතිරි", add_record: "වාර්තාවක්",
+        savings_title: "ඉතිරිකිරීම් ඉලක්ක", savings_desc: "සිහිනය සඳහා ඉතිරි කරන්න.",
+        new_goal: "නව ඉලක්කයක්", no_savings: "ඉතිරිකිරීම් ඉලක්ක නොමැත.",
+        saved: "ඉතිරි කළ", add_contribution: "දායකත්වය",
+        spending_by_cat: "වර්ගය අනුව", income_vs_exp: "ආදායම vs වියදම",
+        monthly_trend: "මාසික ප්‍රවණතාව", net_savings: "ශුද්ධ",
+        this_month: "මෙම මාසය", last_month: "පසුගිය මාසය", last_7: "දින 7", last_3m: "මාස 3",
+        all_time: "සියලු", export_pdf: "PDF",
+        language: "භාෂාව", curr_symbol: "මුදල් ඒකකය", appearance: "පෙනුම",
+        light_mode: "ලයිට් මෝඩ්", light_mode_desc: "ලයිට් තීමය",
+        budget_limit: "මාසික අයවැය", app_security: "ආරක්ෂාව",
+        enable_pin: "PIN සක්‍රිය", pin_desc: "ඇරීමේදී PIN",
+        bio_login: "Biometric", bio_desc: "ඇඟිලි සලකුණ", change_pin: "PIN වෙනස්",
+        update_pin: "PIN යාවත්කාලීන", data_mgt: "දත්ත කළමනාකරණය",
+        export_csv: "CSV", backup_json: "JSON Backup", reset_data: "ඉවත් කරන්න",
+        restore_backup: "Backup ආයාත", import_btn: "ආයාත", save_btn_short: "සේව්",
+        current_pin_ph: "PIN (Default: 1234)", new_pin_ph: "නව PIN (4)", confirm_pin_ph: "PIN තහවුරු",
+        note_ph: "සටහන...", trip_name_ph: "Ella ගමන", goal_name_ph: "ලැප්ටොප්",
+        loan_name_ph: "HNB ණය",
+        add_transaction: "ගනුදෙනු", edit_transaction: "සංස්කරණය",
+        expense: "වියදම", date: "දිනය", time: "වේලාව", amount: "මුදල",
+        category: "වර්ගය", note: "සටහන", link_goal: "සංචාර/ඉලක්කය",
+        recurring: "මාසිකව", save_btn: "සේව්", update_btn: "යාවත්කාලීන",
+        personal_wallet: "-- පෞද්ගලික --", trip_prefix: "ගමන:", sav_prefix: "ඉලක්කය:",
+        trip_name: "සංචාරය", budget_alloc: "බජට්", start_planning: "සැලසුම්",
+        goal_name: "ඉලක්කය", target_amount: "ඉලක්ක මුදල", create_goal: "ඉලක්කය",
+        loan_name_lbl: "නම / බැංකුව", loan_type: "වර්ගය", principal: "ප්‍රධාන",
+        interest_rate: "පොලී %", duration: "කාලය (මාස)", est_installment: "මාසික:",
+        total_payback: "මුළු:", calc_preview: "ගණනය", add_loan_btn: "ණය",
+        personal_loan: "ණය", credit_card: "ක්‍රෙඩිට්", vehicle_loan: "වාහන", mortgage: "ගෙදර",
+        tx_saved: "සේව් විය!", tx_updated: "යාවත්කාලීන!", tx_deleted: "මකා දමන ලදි.",
+        trip_created: "සංචාරය!", goal_created: "ඉලක්කය!", loan_added: "ණය!",
+        installment_paid: "ගෙවා ඇත!", loan_deleted: "ණය.", trip_deleted: "සංචාරය.",
+        goal_deleted: "ඉලක්කය.", pin_updated: "PIN!", pin_incorrect: "PIN වැරදි!",
+        pin_invalid: "PIN නොගැළපේ.", bio_enabled: "Biometric! 🎉",
+        bio_disabled: "Biometric අක්‍රිය.", pin_security_on: "PIN ආරක්ෂාව.",
+        pin_security_off: "PIN අක්‍රිය.", budget_saved: "අයවැය!",
+        generating_pdf: "PDF...", pdf_success: "PDF!",
+        confirm_pay: "{{name}} සඳහා {{amount}}?", confirm_del_loan: "ණය?",
+        confirm_del_trip: "සංචාරය?", confirm_del_save: "ඉලක්කය?",
+        confirm_del_tx: "ගනුදෙනුව?", confirm_reset: "අවවාදයයි: දත්ත ඉවත් වෙනවා!",
+        restored_success: "ප්‍රතිෂ්ඨාපිතයි!", invalid_file: "ගොනුවක්.",
+        new_category: "නව වර්ගය:", pct_done: "% සම්පූර්ණ",
+        my_wallets: "මගේ ගිණුම්", wallets_desc: "සියලු ගිණුම් ශේෂ.",
+        transfer: "හුවමාරුව", transfer_funds: "ගිණුම් හුවමාරුව",
+        from_wallet: "සිට", to_wallet: "දක්වා", select_wallet: "ගිණුමක් තෝරන්න",
+        confirm_transfer: "හුවමාරු කරන්න", transfer_note_ph: "හේතුව...",
+        transfer_saved: "හුවමාරු!", all_wallets: "සියලු ගිණුම්",
+        wallet_label: "ගිණුම", no_wallet: "-- ගිණුමක් නැත --", manage: "කළමනාකරණය",
+        cat_budgets: "බජට් ප්‍රවර්ග", cat_budgets_desc: "ප්‍රවර්ගය අනුව මාසික සීමාව.",
+        cat_budget_progress: "ප්‍රවර්ග බජට් (මෙම මාසය)",
+        no_cat_budgets: "ප්‍රවර්ග බජට් නැත.", receipt_image: "රිසිට්",
+        receipt_upload: "රූපයක් අමුණන්න", receipt_change: "වෙනස් කරන්න",
+        recurring_added: "{{count}} ගනුදෙනු!",
+        // Lent Money keys
+        lent_money_title: "ණය දුන් මුදල්", lent_money_desc: "මිතුරන්ට ණය දුන් මුදල් ලුහුබඳින්න.",
+        add_lent: "ණය එකතු කරන්න", no_lent: "ණය දී ඇති ළඳ නොමැත.",
+        lent_to: "නම", lent_amount: "ණය මුදල", lent_note: "සටහන", lent_date: "දිනය",
+        lent_to_ph: "නාමය", lent_note_ph: "හේතුව...",
+        mark_paid: "ගෙවා ඇතැයි සලකන්න", lent_paid: "ගෙවා ඇත ✓",
+        lent_added: "ණය ලේඛනගත!", lent_deleted: "ඉවත් කළා.", lent_marked_paid: "ගෙවා ඇත!",
+        confirm_mark_paid: "ගෙවා ඇතැයි සලකන්නද?", confirm_del_lent: "ළඳ ඉවත් කරන්නද?",
+        total_lent: "ඉතිරි ණය", report_wallet_filter: "ගිණුමෙන් පෙරන්න", all_wallets_filter: "සියලු ගිණුම්",
+    },
+    ta: {
+        nav_dashboard: "முகப்பு", nav_wallet: "பரிவர்த்தனைகள்", nav_loans: "கடன்கள்",
+        nav_trips: "பயணங்கள்", nav_savings: "சேமிப்பு", nav_reports: "பகுப்பாய்வு",
+        nav_settings: "அமைப்புகள்", nav_lock: "பூட்டு",
+        welcome: "மீண்டும் வருக", subtitle: "பாதுகாப்பான நிதி மேலாண்மை",
+        wrong_pin: "❌ PIN தவறு!", dash_desc: "உங்கள் நிதி நிலைமை.",
+        btn_new_trans: "புதிய பரிவர்த்தனை", total_balance: "மொத்த இருப்பு",
+        cash_hand: "கையில் பணம்", income: "வருமானம்", expenses: "செலவுகள்",
+        accumulated: "மொத்த திரட்டல்", recent_activity: "சமீபத்திய",
+        view_all: "அனைத்தையும் காண்க", no_tx: "பரிவர்த்தனைகள் இல்லை.",
+        wallet_title: "பரிவர்த்தனை வரலாறு", add_new: "புதியது சேர்",
+        search_placeholder: "தேடவும்...", start_date: "தொடக்க", end_date: "இறுதி",
+        no_results: "பரிவர்த்தனைகள் இல்லை.",
+        loans_title: "கடன்கள்", loans_desc: "கடன்களை கண்காணிக்கவும்.",
+        add_loan: "கடன் சேர்", total_debt: "மொத்த கடன்", monthly_liability: "மாதாந்திர தவணை",
+        no_loans: "கடனில்லாதவர்! 🎉", installment: "தவணை", remaining: "மீதமுள்ளது",
+        paid_months: "செலுத்தப்பட்டது", pay_installment: "தவணை செலுத்து", loan_paid: "கடன் முடிந்தது! 🎉",
+        trips_title: "பயண திட்டமிடல்", trips_desc: "பயண பட்ஜெட்.",
+        create_trip: "பயணம் உருவாக்கு", no_trips: "பயணங்கள் இல்லை.",
+        budget: "பட்ஜெட்", spent: "செலவழித்தது", left: "மீதமுள்ளது", add_record: "பதிவு சேர்",
+        savings_title: "சேமிப்பு இலக்குகள்", savings_desc: "கனவுகளுக்காக சேமிக்கவும்.",
+        new_goal: "புதிய இலக்கு", no_savings: "சேமிப்பு இலக்குகள் இல்லை.",
+        saved: "சேமிக்கப்பட்டது", add_contribution: "பங்களிப்பு சேர்",
+        spending_by_cat: "வகையால் செலவு", income_vs_exp: "வருமானம் vs செலவு",
+        monthly_trend: "மாதாந்திர போக்கு", net_savings: "நிகர",
+        this_month: "இந்த மாதம்", last_month: "கடந்த மாதம்", last_7: "7 நாட்கள்",
+        last_3m: "3 மாதங்கள்", all_time: "எல்லா நேரமும்", export_pdf: "PDF",
+        language: "மொழி", curr_symbol: "நாணயம்", appearance: "தோற்றம்",
+        light_mode: "லைட் மோட்", light_mode_desc: "ஒளிரும் தீம்",
+        budget_limit: "மாதாந்திர பட்ஜெட்", app_security: "பாதுகாப்பு",
+        enable_pin: "PIN இயக்கு", pin_desc: "தொடக்கத்தில் PIN",
+        bio_login: "பயோமெட்ரிக்", bio_desc: "கைரேகை", change_pin: "PIN மாற்று",
+        update_pin: "PIN புதுப்பி", data_mgt: "தரவு மேலாண்மை",
+        export_csv: "CSV", backup_json: "JSON", reset_data: "மீட்டமை",
+        restore_backup: "காப்புப்பிரதி", import_btn: "இறக்குமதி", save_btn_short: "சேமி",
+        current_pin_ph: "PIN (Default: 1234)", new_pin_ph: "புதிய PIN", confirm_pin_ph: "உறுதிப்படுத்தவும்",
+        note_ph: "குறிப்பு...", trip_name_ph: "Ella பயணம்", goal_name_ph: "லேப்டாப்",
+        loan_name_ph: "HNB கடன்",
+        add_transaction: "பரிவர்த்தனை சேர்", edit_transaction: "திருத்தம்",
+        expense: "செலவு", date: "தேதி", time: "நேரம்", amount: "தொகை",
+        category: "வகை", note: "குறிப்பு", link_goal: "பயணம் / இலக்கு",
+        recurring: "மாதம்தோறும்", save_btn: "சேமி", update_btn: "புதுப்பி",
+        personal_wallet: "-- தனிப்பட்ட --", trip_prefix: "பயணம்:", sav_prefix: "இலக்கு:",
+        trip_name: "பயண பெயர்", budget_alloc: "பட்ஜெட்", start_planning: "திட்டமிடல்",
+        goal_name: "இலக்கு பெயர்", target_amount: "இலக்கு தொகை", create_goal: "இலக்கு",
+        loan_name_lbl: "பெயர் / வங்கி", loan_type: "வகை", principal: "அசல்",
+        interest_rate: "வட்டி %", duration: "காலம் (மாதங்கள்)", est_installment: "மாதாந்திர:",
+        total_payback: "மொத்த:", calc_preview: "கணக்கிடு", add_loan_btn: "கடன் சேர்",
+        personal_loan: "தனிப்பட்ட கடன்", credit_card: "கிரெடிட் கார்டு",
+        vehicle_loan: "வாகன கடன்", mortgage: "வீட்டுக் கடன்",
+        tx_saved: "சேமிக்கப்பட்டது!", tx_updated: "புதுப்பிக்கப்பட்டது!",
+        tx_deleted: "நீக்கப்பட்டது.", trip_created: "பயணம்!", goal_created: "இலக்கு!",
+        loan_added: "கடன்!", installment_paid: "தவணை செலுத்தப்பட்டது!",
+        loan_deleted: "கடன்.", trip_deleted: "பயணம்.", goal_deleted: "இலக்கு.",
+        pin_updated: "PIN!", pin_incorrect: "PIN தவறு!", pin_invalid: "PIN பொருந்தவில்லை.",
+        bio_enabled: "பயோமெட்ரிக்! 🎉", bio_disabled: "முடக்கப்பட்டது.",
+        pin_security_on: "PIN பாதுகாப்பு.", pin_security_off: "PIN முடக்கம்.",
+        budget_saved: "பட்ஜெட்!", generating_pdf: "PDF...", pdf_success: "PDF!",
+        confirm_pay: "{{name}} க்கு {{amount}}?", confirm_del_loan: "நீக்கவா?",
+        confirm_del_trip: "நீக்கவா?", confirm_del_save: "நீக்கவா?", confirm_del_tx: "நீக்கவா?",
+        confirm_reset: "எல்லா தரவும் நீக்கப்படும்!",
+        restored_success: "மீட்டெடுக்கப்பட்டது!", invalid_file: "தவறான கோப்பு.",
+        new_category: "புதிய வகை:", pct_done: "% முடிந்தது",
+        my_wallets: "என் கணக்குகள்", wallets_desc: "அனைத்து கணக்கு இருப்புகள்.",
+        transfer: "பரிமாற்றம்", transfer_funds: "நிதி பரிமாற்றம்",
+        from_wallet: "இருந்து", to_wallet: "வரை", select_wallet: "கணக்கை தேர்ந்தெடுக்கவும்",
+        confirm_transfer: "பரிமாற்றம்", transfer_note_ph: "காரணம்...",
+        transfer_saved: "பரிமாற்றம்!", all_wallets: "அனைத்து கணக்குகள்",
+        wallet_label: "கணக்கு", no_wallet: "-- எதுவுமில்லை --", manage: "நிர்வகி",
+        cat_budgets: "வகை பட்ஜெட்கள்", cat_budgets_desc: "மாதாந்திர வரம்பு.",
+        cat_budget_progress: "வகை பட்ஜெட் (இந்த மாதம்)",
+        no_cat_budgets: "வகை பட்ஜெட்கள் இல்லை.", receipt_image: "ரசீது",
+        receipt_upload: "படம் இணை", receipt_change: "மாற்று",
+        recurring_added: "{{count}} பரிவர்த்தனைகள்!",
+        // Lent Money keys
+        lent_money_title: "கடனாக கொடுத்தது", lent_money_desc: "நண்பர்களுக்கு கடனாக கொடுத்ததை கண்காணிக்கவும்.",
+        add_lent: "கடன் சேர்", no_lent: "கடன் பதிவுகள் இல்லை.",
+        lent_to: "பெயர்", lent_amount: "கடன் தொகை", lent_note: "குறிப்பு", lent_date: "தேதி",
+        lent_to_ph: "பெயர்", lent_note_ph: "காரணம்...",
+        mark_paid: "திருப்பிக் கொடுக்கப்பட்டது", lent_paid: "தீர்க்கப்பட்டது ✓",
+        lent_added: "கடன் பதிவு சேர்க்கப்பட்டது!", lent_deleted: "நீக்கப்பட்டது.", lent_marked_paid: "தீர்க்கப்பட்டது!",
+        confirm_mark_paid: "தீர்க்கப்பட்டதாக குறிக்கவா?", confirm_del_lent: "நீக்கவா?",
+        total_lent: "மொத்த கடன் நிலுவை", report_wallet_filter: "கணக்கு வடிகட்டு", all_wallets_filter: "அனைத்து கணக்குகள்",
+    },
+    hi: {
+        nav_dashboard: "डैशबोर्ड", nav_wallet: "लेन-देन", nav_loans: "ऋण",
+        nav_trips: "यात्राएं", nav_savings: "बचत", nav_reports: "विश्लेषण",
+        nav_settings: "सेटिंग्स", nav_lock: "लॉक करें",
+        welcome: "वापसी पर स्वागत", subtitle: "सुरक्षित वित्त प्रबंधन",
+        wrong_pin: "❌ गलत PIN!", dash_desc: "आपकी वित्तीय स्थिति।",
+        btn_new_trans: "नया लेन-देन", total_balance: "कुल शेष",
+        cash_hand: "हाथ में नकद", income: "आय", expenses: "व्यय",
+        accumulated: "कुल जमा", recent_activity: "हालिया गतिविधि",
+        view_all: "सभी देखें", no_tx: "कोई लेन-देन नहीं।",
+        wallet_title: "लेन-देन इतिहास", add_new: "नया जोड़ें",
+        search_placeholder: "खोजें...", start_date: "आरंभ तिथि", end_date: "अंतिम तिथि",
+        no_results: "कोई लेन-देन नहीं।",
+        loans_title: "ऋण और क्रेडिट", loans_desc: "ऋणों को ट्रैक करें।",
+        add_loan: "ऋण जोड़ें", total_debt: "कुल बकाया", monthly_liability: "मासिक किश्त",
+        no_loans: "ऋण मुक्त! 🎉", installment: "किश्त", remaining: "शेष",
+        paid_months: "चुकाया", pay_installment: "किश्त चुकाएं", loan_paid: "ऋण चुका! 🎉",
+        trips_title: "यात्रा योजनाकार", trips_desc: "यात्राओं के लिए अलग बजट।",
+        create_trip: "यात्रा बनाएं", no_trips: "कोई यात्रा नहीं।",
+        budget: "बजट", spent: "खर्च", left: "शेष", add_record: "रिकॉर्ड जोड़ें",
+        savings_title: "बचत लक्ष्य", savings_desc: "सपनों के लिए बचत।",
+        new_goal: "नया लक्ष्य", no_savings: "कोई बचत लक्ष्य नहीं।",
+        saved: "बचाया गया", add_contribution: "योगदान जोड़ें",
+        spending_by_cat: "श्रेणी अनुसार व्यय", income_vs_exp: "आय बनाम व्यय",
+        monthly_trend: "मासिक प्रवृत्ति", net_savings: "शुद्ध",
+        this_month: "इस महीने", last_month: "पिछले महीने", last_7: "पिछले 7 दिन",
+        last_3m: "पिछले 3 महीने", all_time: "सभी समय", export_pdf: "PDF",
+        language: "भाषा", curr_symbol: "मुद्रा", appearance: "दिखावट",
+        light_mode: "लाइट मोड", light_mode_desc: "लाइट थीम",
+        budget_limit: "मासिक बजट सीमा", app_security: "सुरक्षा",
+        enable_pin: "PIN सक्षम", pin_desc: "शुरू पर PIN", bio_login: "बायोमेट्रिक", bio_desc: "फिंगरप्रिंट",
+        change_pin: "PIN बदलें", update_pin: "PIN अपडेट", data_mgt: "डेटा प्रबंधन",
+        export_csv: "CSV", backup_json: "JSON बैकअप", reset_data: "डेटा हटाएं",
+        restore_backup: "बैकअप पुनर्स्थापित", import_btn: "आयात", save_btn_short: "सहेजें",
+        current_pin_ph: "वर्तमान PIN (1234)", new_pin_ph: "नया PIN", confirm_pin_ph: "PIN पुष्टि",
+        note_ph: "संक्षिप्त विवरण...", trip_name_ph: "Ella यात्रा", goal_name_ph: "लैपटॉप",
+        loan_name_ph: "HNB ऋण",
+        add_transaction: "लेन-देन जोड़ें", edit_transaction: "संपादित करें",
+        expense: "व्यय", date: "तारीख", time: "समय", amount: "राशि",
+        category: "श्रेणी", note: "टिप्पणी", link_goal: "यात्रा / लक्ष्य",
+        recurring: "मासिक दोहराएं", save_btn: "लेन-देन सहेजें", update_btn: "अपडेट",
+        personal_wallet: "-- व्यक्तिगत --", trip_prefix: "यात्रा:", sav_prefix: "लक्ष्य:",
+        trip_name: "यात्रा का नाम", budget_alloc: "बजट आवंटन", start_planning: "योजना शुरू",
+        goal_name: "लक्ष्य का नाम", target_amount: "लक्ष्य राशि", create_goal: "लक्ष्य बनाएं",
+        loan_name_lbl: "नाम / बैंक", loan_type: "प्रकार", principal: "मूल राशि",
+        interest_rate: "ब्याज दर %", duration: "अवधि (महीने)", est_installment: "मासिक किश्त:",
+        total_payback: "कुल:", calc_preview: "गणना", add_loan_btn: "ऋण जोड़ें",
+        personal_loan: "व्यक्तिगत ऋण", credit_card: "क्रेडिट कार्ड",
+        vehicle_loan: "वाहन ऋण", mortgage: "गृह ऋण",
+        tx_saved: "सहेजा गया!", tx_updated: "अपडेट!", tx_deleted: "हटाया गया.",
+        trip_created: "यात्रा!", goal_created: "लक्ष्य!", loan_added: "ऋण!",
+        installment_paid: "किश्त चुका दी!", loan_deleted: "ऋण.", trip_deleted: "यात्रा.",
+        goal_deleted: "लक्ष्य.", pin_updated: "PIN!", pin_incorrect: "PIN गलत!",
+        pin_invalid: "PIN मेल नहीं.", bio_enabled: "बायोमेट्रिक! 🎉",
+        bio_disabled: "बायोमेट्रिक अक्षम.", pin_security_on: "PIN सुरक्षा.",
+        pin_security_off: "PIN अक्षम.", budget_saved: "बजट!",
+        generating_pdf: "PDF...", pdf_success: "PDF!",
+        confirm_pay: "{{name}} के लिए {{amount}}?", confirm_del_loan: "हटाएं?",
+        confirm_del_trip: "हटाएं?", confirm_del_save: "हटाएं?", confirm_del_tx: "हटाएं?",
+        confirm_reset: "चेतावनी: सभी डेटा हट जाएगा!",
+        restored_success: "पुनर्स्थापित!", invalid_file: "अमान्य फ़ाइल.",
+        new_category: "नई श्रेणी:", pct_done: "% पूर्ण",
+        my_wallets: "मेरे खाते", wallets_desc: "सभी खातों की शेष राशि.",
+        transfer: "स्थानांतरण", transfer_funds: "धनराशि स्थानांतरण",
+        from_wallet: "से", to_wallet: "को", select_wallet: "खाता चुनें",
+        confirm_transfer: "स्थानांतरण करें", transfer_note_ph: "कारण...",
+        transfer_saved: "स्थानांतरण!", all_wallets: "सभी खाते",
+        wallet_label: "खाता", no_wallet: "-- कोई नहीं --", manage: "प्रबंधन",
+        cat_budgets: "श्रेणी बजट", cat_budgets_desc: "मासिक सीमा।",
+        cat_budget_progress: "श्रेणी बजट (इस महीने)",
+        no_cat_budgets: "श्रेणी बजट नहीं.", receipt_image: "रसीद",
+        receipt_upload: "छवि संलग्न करें", receipt_change: "बदलें",
+        recurring_added: "{{count}} लेन-देन!",
+        // Lent Money keys
+        lent_money_title: "उधार दिया गया पैसा", lent_money_desc: "दोस्तों को दिए उधार को ट्रैक करें।",
+        add_lent: "उधार जोड़ें", no_lent: "कोई उधार रिकॉर्ड नहीं।",
+        lent_to: "नाम / व्यक्ति", lent_amount: "उधार राशि", lent_note: "टिप्पणी", lent_date: "तारीख",
+        lent_to_ph: "नाम", lent_note_ph: "कारण...",
+        mark_paid: "वापस मिला", lent_paid: "चुका दिया ✓",
+        lent_added: "उधार दर्ज किया गया!", lent_deleted: "हटाया गया.", lent_marked_paid: "चुका दिया गया!",
+        confirm_mark_paid: "वापस मिला के रूप में चिह्नित करें?", confirm_del_lent: "हटाएं?",
+        total_lent: "कुल बकाया उधार", report_wallet_filter: "खाते से फ़िल्टर करें", all_wallets_filter: "सभी खाते",
+    }
+};
+
+// ============================================================
+// CAT ICONS
+// ============================================================
+const CAT_ICONS = {
+    'Food': { icon: 'fa-utensils', color: 'bg-orange-500/20 text-orange-400' },
+    'Transport': { icon: 'fa-car', color: 'bg-blue-500/20 text-blue-400' },
+    'Shopping': { icon: 'fa-bag-shopping', color: 'bg-pink-500/20 text-pink-400' },
+    'Bills': { icon: 'fa-file-invoice', color: 'bg-red-500/20 text-red-400' },
+    'Entertainment': { icon: 'fa-gamepad', color: 'bg-purple-500/20 text-purple-400' },
+    'Salary': { icon: 'fa-briefcase', color: 'bg-green-500/20 text-green-400' },
+    'Health': { icon: 'fa-heart-pulse', color: 'bg-red-400/20 text-red-300' },
+    'Education': { icon: 'fa-graduation-cap', color: 'bg-cyan-500/20 text-cyan-400' },
+    'Loan Repayment': { icon: 'fa-credit-card', color: 'bg-violet-500/20 text-violet-400' },
+    'Other': { icon: 'fa-ellipsis', color: 'bg-slate-500/20 text-slate-400' },
+};
+
+const DEFAULT_CATEGORIES = ['Food','Transport','Shopping','Bills','Entertainment','Salary','Health','Education','Loan Repayment','Other'];
+
+const EXPENSE_CATS = ['Food','Transport','Shopping','Bills','Entertainment','Health','Education','Loan Repayment','Other'];
+
+const DEFAULT_WALLETS = [
+    { id: 1, name: 'Cash', type: 'Cash', icon: 'fa-money-bill-wave', color: '#10b981' },
+    { id: 2, name: 'Bank Account', type: 'Bank', icon: 'fa-building-columns', color: '#3b82f6' },
+    { id: 3, name: 'Mobile Wallet', type: 'Digital', icon: 'fa-mobile-screen', color: '#8b5cf6' },
+];
+
+// ============================================================
+// VUE APP
+// ============================================================
+const { createApp } = Vue;
+
+createApp({
+    data() {
+        // Load persisted data
+        const raw = localStorage.getItem('aloneMgtProV5') || localStorage.getItem('aloneMgtProV4') || localStorage.getItem('aloneMgtProV3');
+        let saved = raw ? JSON.parse(raw) : null;
+
+        // Build appData with migration
+        const appData = {
+            transactions: saved?.transactions || [],
+            trips: saved?.trips || [],
+            savings: saved?.savings || [],
+            loans: saved?.loans || [],
+            lentMoneys: saved?.lentMoneys || [],
+            categories: saved?.categories || [...DEFAULT_CATEGORIES],
+            wallets: saved?.wallets || JSON.parse(JSON.stringify(DEFAULT_WALLETS)),
+            settings: {
+                currency: saved?.settings?.currency || 'LKR',
+                budget: saved?.settings?.budget || 50000,
+                pin: saved?.settings?.pin || btoa('1234'),
+                pinEnabled: saved?.settings?.pinEnabled || false,
+                bioEnabled: saved?.settings?.bioEnabled || false,
+                theme: saved?.settings?.theme || 'dark',
+                lang: saved?.settings?.lang || 'en',
+                categoryBudgets: saved?.settings?.categoryBudgets || {},
+            }
+        };
+
+        // Migrate plain text PINs
+        if (appData.settings.pin && appData.settings.pin.length === 4) {
+            appData.settings.pin = btoa(appData.settings.pin);
+        }
+
+        const needsAuth = appData.settings.pinEnabled || appData.settings.bioEnabled;
+
+        return {
+            isAuthenticated: !needsAuth,
+            currentSection: 'dashboard',
+            pinBuffer: '',
+            pinError: false,
+            isLightMode: appData.settings.theme === 'light',
+            appData,
+
+            // Toast system
+            toasts: [],
+            toastColors: { success: 'bg-success', error: 'bg-danger', info: 'bg-primary', warning: 'bg-warning' },
+            toastIcons: { success: 'fa-check-circle', error: 'fa-circle-exclamation', info: 'fa-info-circle', warning: 'fa-triangle-exclamation' },
+
+            // Modals
+            modals: { transaction: false, trip: false, saving: false, loan: false, transfer: false, addWallet: false, editTrip: false, editSaving: false, lentMoney: false },
+            viewingReceiptUrl: null,
+
+            // Transaction form
+            editingTransactionId: null,
+            txForm: { type: 'expense', date: '', time: '', amount: '', category: DEFAULT_CATEGORIES[0], walletId: '', note: '', linkVal: '', isRecurring: false, receiptImage: null },
+
+            // Other forms
+            tripForm: { name: '', budget: '' },
+            savingForm: { name: '', target: '' },
+            loanForm: { name: '', type: 'Personal Loan', amount: '', rate: '', months: '' },
+            transferForm: { fromWalletId: '', toWalletId: '', amount: '', note: '' },
+            pinForm: { current: '', newPin: '', confirm: '' },
+            walletForm: { name: '', type: 'Cash', color: '#10b981', icon: 'fa-money-bill-wave' },
+            editingWalletId: null,
+            editingLoanId: null,
+            editTripForm: { id: null, name: '', budget: '' },
+            editSavingForm: { id: null, name: '', target: '' },
+            walletIcons: ['fa-money-bill-wave','fa-building-columns','fa-mobile-screen','fa-credit-card','fa-piggy-bank','fa-coins','fa-briefcase','fa-wallet','fa-landmark','fa-sack-dollar','fa-hand-holding-dollar','fa-chart-line'],
+
+            // Filters
+            searchTx: '',
+            filterStart: '',
+            filterEnd: '',
+            reportRange: 'this_month',
+            reportWalletFilter: '',
+            reportIncome: 0,
+            reportExpense: 0,
+
+            // Lent Money form
+            lentForm: { name: '', amount: '', date: '', note: '' },
+
+            // Charts
+            pieChart: null, barChart: null, lineChart: null,
+
+            // Nav items
+            navItems: [
+                { id: 'dashboard', key: 'nav_dashboard', icon: 'fa-solid fa-house' },
+                { id: 'wallet', key: 'nav_wallet', icon: 'fa-solid fa-wallet' },
+                { id: 'wallets', key: 'my_wallets', icon: 'fa-solid fa-building-columns' },
+                { id: 'loans', key: 'nav_loans', icon: 'fa-solid fa-credit-card' },
+                { id: 'trips', key: 'nav_trips', icon: 'fa-solid fa-plane-departure' },
+                { id: 'savings', key: 'nav_savings', icon: 'fa-solid fa-piggy-bank' },
+                { id: 'reports', key: 'nav_reports', icon: 'fa-solid fa-chart-pie' },
+            ],
+            bottomNavItems: [
+                { id: 'dashboard', icon: 'fa-house' },
+                { id: 'wallet', icon: 'fa-wallet' },
+                { id: 'loans', icon: 'fa-credit-card' },
+                { id: 'savings', icon: 'fa-piggy-bank' },
+                { id: 'reports', icon: 'fa-chart-pie' },
+            ],
+        };
+    },
+
+    computed: {
+        totalIncome() {
+            return this.appData.transactions.filter(tx => tx.type === 'income').reduce((a, tx) => a + parseFloat(tx.amount), 0);
+        },
+        totalExpense() {
+            return this.appData.transactions.filter(tx => tx.type === 'expense').reduce((a, tx) => a + parseFloat(tx.amount), 0);
+        },
+        totalBalance() {
+            return this.totalIncome - this.totalExpense;
+        },
+        monthExpense() {
+            const now = new Date();
+            return this.appData.transactions.reduce((acc, tx) => {
+                const d = new Date(tx.date);
+                if (tx.type === 'expense' && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear())
+                    return acc + parseFloat(tx.amount);
+                return acc;
+            }, 0);
+        },
+        budgetPct() {
+            const b = this.appData.settings.budget || 0;
+            return b > 0 ? (this.monthExpense / b) * 100 : 0;
+        },
+        budgetPctClass() {
+            return this.budgetPct > 90 ? 'bg-danger' : this.budgetPct > 70 ? 'bg-warning' : 'bg-primary';
+        },
+        recentTransactions() {
+            return [...this.appData.transactions].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 8);
+        },
+        filteredTransactions() {
+            const q = this.searchTx.toLowerCase();
+            return [...this.appData.transactions]
+                .sort((a, b) => new Date(b.date) - new Date(a.date))
+                .filter(tx => {
+                    const matchQ = !q || (tx.note || '').toLowerCase().includes(q) || (tx.category || '').toLowerCase().includes(q);
+                    const tDate = new Date(tx.date).setHours(0,0,0,0);
+                    let matchDate = true;
+                    if (this.filterStart) { const sd = new Date(this.filterStart).setHours(0,0,0,0); if (tDate < sd) matchDate = false; }
+                    if (this.filterEnd) { const ed = new Date(this.filterEnd).setHours(0,0,0,0); if (tDate > ed) matchDate = false; }
+                    return matchQ && matchDate;
+                });
+        },
+        totalDebt() {
+            return this.appData.loans.reduce((acc, loan) => {
+                const rem = (loan.monthlyInstallment * loan.months) - (loan.paidAmount || 0);
+                return acc + Math.max(rem, 0);
+            }, 0);
+        },
+        totalMonthlyInstallment() {
+            return this.appData.loans.reduce((acc, loan) => {
+                if (!this.isLoanPaid(loan)) return acc + loan.monthlyInstallment;
+                return acc;
+            }, 0);
+        },
+        expenseCategories() {
+            return this.appData.categories.filter(c => c !== 'Salary');
+        },
+        categoriesWithBudget() {
+            const now = new Date();
+            return Object.keys(this.appData.settings.categoryBudgets)
+                .filter(cat => (this.appData.settings.categoryBudgets[cat] || 0) > 0)
+                .map(cat => {
+                    const budget = parseFloat(this.appData.settings.categoryBudgets[cat]) || 0;
+                    const spent = this.appData.transactions.filter(tx => {
+                        const d = new Date(tx.date);
+                        return tx.type === 'expense' && tx.category === cat &&
+                               d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+                    }).reduce((a, tx) => a + parseFloat(tx.amount), 0);
+                    return { name: cat, budget, spent, pct: budget > 0 ? (spent / budget) * 100 : 0 };
+                });
+        },
+        totalLentActive() {
+            if (!this.appData.lentMoneys) return 0;
+            return this.appData.lentMoneys.filter(l => !l.paid).reduce((a, l) => a + parseFloat(l.amount), 0);
+        },
+        loanCalcEmi() {
+            const P = parseFloat(this.loanForm.amount) || 0;
+            const r = this.loanForm.rate === '' ? 0 : parseFloat(this.loanForm.rate) || 0;
+            const n = parseFloat(this.loanForm.months) || 0;
+            if (P <= 0 || n <= 0) return 0;
+            if (r === 0) return P / n;
+            const mr = r / (12 * 100);
+            return (P * mr * Math.pow(1 + mr, n)) / (Math.pow(1 + mr, n) - 1);
+        },
+        loanCalcTotal() {
+            return this.loanCalcEmi * (parseFloat(this.loanForm.months) || 0);
+        },
+    },
+
+    methods: {
+        // ====== TRANSLATION ======
+        t(key, vars) {
+            const lang = this.appData.settings.lang || 'en';
+            let str = (TRANSLATIONS[lang]?.[key]) || TRANSLATIONS['en']?.[key] || key;
+            if (vars) Object.keys(vars).forEach(k => str = str.replace(`{{${k}}}`, vars[k]));
+            return str;
+        },
+
+        // ====== FORMATTING ======
+        formatMoney(amount) {
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency: this.appData.settings.currency }).format(amount || 0);
+        },
+        formatDate(iso) {
+            return new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+        },
+        formatDateFull(iso) {
+            const d = new Date(iso);
+            return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ' · ' +
+                   d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        },
+        catStyle(cat, isIncome) {
+            if (isIncome) return { icon: 'fa-arrow-down', color: 'bg-success/15 text-success' };
+            return CAT_ICONS[cat] || { icon: 'fa-minus', color: 'bg-slate-500/20 text-slate-400' };
+        },
+
+        // ====== TOAST ======
+        showToast(message, type = 'success') {
+            const id = Date.now() + Math.random();
+            this.toasts.push({ id, message, type });
+            setTimeout(() => {
+                this.toasts = this.toasts.filter(t => t.id !== id);
+            }, 3500);
+        },
+
+        // ====== AUTH ======
+        pinInput(val) {
+            if (val === 'bio') { this.verifyBiometric(); return; }
+            if (val === 'del') { this.pinBuffer = this.pinBuffer.slice(0, -1); }
+            else if (this.pinBuffer.length < 4) { this.pinBuffer += val; }
+            if (this.pinBuffer.length === 4) {
+                setTimeout(() => this.attemptLogin(), 120);
+            }
+        },
+        attemptLogin() {
+            if (btoa(this.pinBuffer) === this.appData.settings.pin) {
+                this.pinError = false;
+                this.isAuthenticated = true;
+                this.applyTheme();
+                this.$nextTick(() => this.processRecurring());
+            } else {
+                this.pinError = true;
+                this.pinBuffer = '';
+                setTimeout(() => { this.pinError = false; }, 2500);
+            }
+        },
+        logout() { location.reload(); },
+                async verifyBiometric() {
+            if (!window.PublicKeyCredential || !this.appData.settings.bioEnabled) return;
+
+            // Save කරපු Credential ID එක ගන්නවා
+            const savedCredId = localStorage.getItem('alone_bio_cred_id');
+            if (!savedCredId) {
+                this.showToast('Biometric setup missing. Please login with PIN and re-enable it in settings.', 'error');
+                this.appData.settings.bioEnabled = false;
+                this.saveData();
+                return;
+            }
+
+            const challenge = new Uint8Array(32);
+            window.crypto.getRandomValues(challenge);
+
+            // Base64 string එක ආපසු Uint8Array බවට පත් කිරීම
+            const credIdArray = Uint8Array.from(atob(savedCredId), c => c.charCodeAt(0));
+
+            try {
+                const r = await navigator.credentials.get({
+                    publicKey: {
+                        challenge,
+                        rpId: window.location.hostname,
+                        allowCredentials: [{
+                            type: 'public-key',
+                            id: credIdArray
+                        }],
+                        userVerification: 'required',
+                        timeout: 60000
+                    }
+                });
+                if (r) { 
+                    this.isAuthenticated = true; 
+                    this.applyTheme(); // Theme එක apply වෙන්න මේකත් දැම්මා
+                    this.$nextTick(() => this.processRecurring()); 
+                }
+            } catch (e) { 
+                console.error(e);
+                this.showToast('Biometric failed. Use PIN.', 'error'); 
+            }
+        },
+
+        async registerBiometric() {
+            if (!window.PublicKeyCredential) { 
+                this.showToast('Biometrics not supported.', 'error'); 
+                return false; 
+            }
+            
+            const userId = new Uint8Array(16);
+            window.crypto.getRandomValues(userId); // හැමවෙලේම random ID එකක් දෙන එක වඩා secure
+            
+            const challenge = new Uint8Array(32);
+            window.crypto.getRandomValues(challenge);
+            
+            try {
+                const credential = await navigator.credentials.create({
+                    publicKey: {
+                        challenge, 
+                        rp: { name: 'AloneMgt', id: window.location.hostname },
+                        user: { id: userId, name: 'AloneMgt User', displayName: 'AloneMgt User' },
+                        pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+                        authenticatorSelection: { 
+                            authenticatorAttachment: 'platform', 
+                            userVerification: 'required'
+                        },
+                        timeout: 60000, 
+                        attestation: 'none'
+                    }
+                });
+
+                // හැදෙන credential එකේ ID එක localStorage එකේ save කරගන්නවා
+                const credIdBase64 = btoa(String.fromCharCode(...new Uint8Array(credential.rawId)));
+                localStorage.setItem('alone_bio_cred_id', credIdBase64);
+
+                return true;
+            } catch (e) { 
+                console.error(e);
+                this.showToast('Biometric registration failed.', 'error'); 
+                return false; 
+            }
+        },
+
+
+        // ====== PERSISTENCE ======
+        saveData() {
+            localStorage.setItem('aloneMgtProV5', JSON.stringify(this.appData));
+        },
+
+        // ====== THEME ======
+        toggleTheme() {
+            this.appData.settings.theme = this.isLightMode ? 'light' : 'dark';
+            this.saveData();
+            this.applyTheme();
+        },
+        applyTheme() {
+            document.body.classList.toggle('light-mode', this.appData.settings.theme === 'light');
+            this.isLightMode = this.appData.settings.theme === 'light';
+        },
+
+        // ====== SECURITY ======
+        async toggleSecurity(type) {
+            if (type === 'pin') {
+                this.saveData();
+                this.showToast(this.appData.settings.pinEnabled ? this.t('pin_security_on') : this.t('pin_security_off'));
+            } else {
+                if (this.appData.settings.bioEnabled) {
+                    const ok = await this.registerBiometric();
+                    if (!ok) { this.appData.settings.bioEnabled = false; }
+                    else { this.showToast(this.t('bio_enabled')); }
+                } else { this.showToast(this.t('bio_disabled')); }
+                this.saveData();
+            }
+        },
+        changePIN() {
+            if (btoa(this.pinForm.current) !== this.appData.settings.pin) { this.showToast(this.t('pin_incorrect'), 'error'); return; }
+            if (this.pinForm.newPin.length < 4 || this.pinForm.newPin !== this.pinForm.confirm) { this.showToast(this.t('pin_invalid'), 'error'); return; }
+            this.appData.settings.pin = btoa(this.pinForm.newPin);
+            this.saveData();
+            this.pinForm = { current: '', newPin: '', confirm: '' };
+            this.showToast(this.t('pin_updated'));
+        },
+
+        // ====== NAVIGATION ======
+        nav(section) {
+            this.currentSection = section;
+            if (this.$refs.mainScroll) this.$refs.mainScroll.scrollTo(0, 0);
+            if (section === 'reports') {
+                this.$nextTick(() => this.updateReports());
+            }
+        },
+
+        // ====== WALLET HELPERS ======
+        walletBalance(walletId) {
+            return this.walletIncome(walletId) - this.walletExpense(walletId);
+        },
+        walletIncome(walletId) {
+            return this.appData.transactions.filter(tx => tx.walletId == walletId && tx.type === 'income').reduce((a, tx) => a + parseFloat(tx.amount), 0);
+        },
+        walletExpense(walletId) {
+            return this.appData.transactions.filter(tx => tx.walletId == walletId && tx.type === 'expense').reduce((a, tx) => a + parseFloat(tx.amount), 0);
+        },
+        walletName(walletId) {
+            if (!walletId) return '—';
+            const w = this.appData.wallets.find(w => w.id == walletId);
+            return w ? w.name : '—';
+        },
+
+        // ====== LOAN HELPERS ======
+        loanRemaining(loan) {
+            return Math.max((loan.monthlyInstallment * loan.months) - (loan.paidAmount || 0), 0);
+        },
+        loanProgress(loan) {
+            const total = loan.monthlyInstallment * loan.months;
+            if (!total || total <= 0) return 0;
+            return ((loan.paidAmount || 0) / total) * 100;
+        },
+        isLoanPaid(loan) {
+            const total = loan.monthlyInstallment * loan.months;
+            if (!total || total <= 0) return false;
+            return (loan.paidAmount || 0) >= total - 1;
+        },
+
+        // ====== TRIP HELPERS ======
+        tripBudget(trip) {
+            const inc = this.appData.transactions.filter(tx => tx.tripId == trip.id && tx.type === 'income').reduce((a, tx) => a + parseFloat(tx.amount), 0);
+            return trip.budget + inc;
+        },
+        tripSpent(trip) {
+            return this.appData.transactions.filter(tx => tx.tripId == trip.id && tx.type === 'expense').reduce((a, tx) => a + parseFloat(tx.amount), 0);
+        },
+        tripLeft(trip) { return this.tripBudget(trip) - this.tripSpent(trip); },
+        tripPct(trip) { const b = this.tripBudget(trip); return b > 0 ? (this.tripSpent(trip) / b) * 100 : 0; },
+        tripPctClass(trip) {
+            const p = this.tripPct(trip);
+            return p > 90 ? 'bg-danger' : p > 70 ? 'bg-warning' : 'bg-secondary';
+        },
+
+        // ====== SAVING HELPERS ======
+        savingSaved(sav) {
+            return this.appData.transactions.filter(tx => tx.saveId == sav.id).reduce((acc, tx) => {
+                return tx.type === 'income' ? acc + parseFloat(tx.amount) : acc - parseFloat(tx.amount);
+            }, 0);
+        },
+        savingPct(sav) { return sav.target > 0 ? (this.savingSaved(sav) / sav.target) * 100 : 0; },
+
+        // ====== CATEGORY BUDGETS ======
+        setCategoryBudget(cat, value) {
+            if (!this.appData.settings.categoryBudgets) this.appData.settings.categoryBudgets = {};
+            this.appData.settings.categoryBudgets[cat] = parseFloat(value) || 0;
+            this.saveData();
+        },
+        saveBudget() {
+            this.saveData();
+            this.showToast(this.t('budget_saved'));
+        },
+
+        // ====== MODALS ======
+        openModal(type) {
+            if (type === 'transaction') {
+                if (!this.editingTransactionId) {
+                    const now = new Date();
+                    const pad = n => String(n).padStart(2, '0');
+                    this.txForm.date = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+                    this.txForm.time = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+                    this.txForm.category = this.appData.categories[0];
+                    this.txForm.amount = '';
+                    this.txForm.note = '';
+                    this.txForm.linkVal = '';
+                    this.txForm.walletId = '';
+                    this.txForm.isRecurring = false;
+                    this.txForm.receiptImage = null;
+                    this.txForm.type = 'expense';
+                }
+            }
+            if (type === 'loan' && !this.editingLoanId) {
+                this.loanForm = { name: '', type: 'Personal Loan', amount: '', rate: '', months: '' };
+            }
+            if (type === 'lentMoney') {
+                const now = new Date();
+                const pad = n => String(n).padStart(2, '0');
+                this.lentForm = { name: '', amount: '', date: `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`, note: '' };
+            }
+            this.modals[type] = true;
+        },
+        closeModal(type) {
+            this.modals[type] = false;
+            if (type === 'transaction') {
+                this.editingTransactionId = null;
+                this.txForm = { type: 'expense', date: '', time: '', amount: '', category: this.appData.categories[0], walletId: '', note: '', linkVal: '', isRecurring: false, receiptImage: null };
+            }
+            if (type === 'loan') {
+                this.editingLoanId = null;
+                this.loanForm = { name: '', type: 'Personal Loan', amount: '', rate: '', months: '' };
+            }
+            if (type === 'transfer') {
+                this.transferForm = { fromWalletId: '', toWalletId: '', amount: '', note: '' };
+            }
+            if (type === 'addWallet') {
+                this.editingWalletId = null;
+                this.walletForm = { name: '', type: 'Cash', color: '#10b981', icon: 'fa-money-bill-wave' };
+            }
+        },
+        handleCategoryChange() {
+            if (this.txForm.category === 'NEW_CAT') {
+                const newCat = prompt(this.t('new_category'));
+                if (newCat && newCat.trim()) {
+                    this.appData.categories.push(newCat.trim());
+                    this.txForm.category = newCat.trim();
+                    this.saveData();
+                } else {
+                    this.txForm.category = this.appData.categories[0];
+                }
+            }
+        },
+
+        // ====== RECEIPT UPLOAD ======
+        handleReceiptUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX = 600;
+                    let { width, height } = img;
+                    if (width > MAX) { height = Math.round((height * MAX) / width); width = MAX; }
+                    if (height > MAX) { width = Math.round((width * MAX) / height); height = MAX; }
+                    canvas.width = width; canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    this.txForm.receiptImage = canvas.toDataURL('image/jpeg', 0.65);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        },
+
+        // ====== TRANSACTION CRUD ======
+        submitTransaction() {
+            const { type, amount, category, note, linkVal, walletId, isRecurring, date, time, receiptImage } = this.txForm;
+            const finalDateTime = date && time ? new Date(`${date}T${time}`) : new Date();
+            let tripId = null, saveId = null;
+            if (linkVal.startsWith('trip-')) tripId = parseInt(linkVal.split('-')[1]);
+            if (linkVal.startsWith('sav-')) saveId = parseInt(linkVal.split('-')[1]);
+
+            if (this.editingTransactionId) {
+                const idx = this.appData.transactions.findIndex(tx => tx.id === this.editingTransactionId);
+                if (idx !== -1) {
+                    this.appData.transactions[idx] = { ...this.appData.transactions[idx], date: finalDateTime.toISOString(), type, amount: parseFloat(amount), category, note, tripId, saveId, walletId: walletId || null, isRecurring, receiptImage };
+                    this.showToast(this.t('tx_updated'));
+                }
+            } else {
+                const currentMonth = `${finalDateTime.getFullYear()}-${String(finalDateTime.getMonth()+1).padStart(2,'0')}`;
+                this.appData.transactions.push({
+                    id: Date.now(), date: finalDateTime.toISOString(), type, amount: parseFloat(amount),
+                    category, note, tripId, saveId, walletId: walletId || null, isRecurring, receiptImage,
+                    recurringMonth: isRecurring ? currentMonth : null
+                });
+                this.showToast(this.t('tx_saved'));
+            }
+
+            this.saveData();
+            this.closeModal('transaction');
+            this.checkBudgetWarning();
+        },
+        editTrans(id) {
+            const tx = this.appData.transactions.find(t => t.id === id);
+            if (!tx) return;
+            this.editingTransactionId = id;
+            const d = new Date(tx.date);
+            const pad = n => String(n).padStart(2, '0');
+            this.txForm = {
+                type: tx.type,
+                date: `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`,
+                time: `${pad(d.getHours())}:${pad(d.getMinutes())}`,
+                amount: tx.amount,
+                category: tx.category,
+                walletId: tx.walletId || '',
+                note: tx.note || '',
+                linkVal: tx.tripId ? `trip-${tx.tripId}` : tx.saveId ? `sav-${tx.saveId}` : '',
+                isRecurring: tx.isRecurring || false,
+                receiptImage: tx.receiptImage || null
+            };
+            this.modals.transaction = true;
+        },
+        deleteTrans(id) {
+            if (confirm(this.t('confirm_del_tx'))) {
+                this.appData.transactions = this.appData.transactions.filter(t => t.id !== id);
+                this.saveData();
+                this.showToast(this.t('tx_deleted'), 'error');
+            }
+        },
+        checkBudgetWarning() {
+            if (this.budgetPct >= 100) this.showToast('⚠️ Budget exceeded!', 'error');
+            else if (this.budgetPct >= 80) this.showToast('⚠️ 80% of budget used!', 'warning');
+        },
+        quickAdd(type, id) {
+            this.openModal('transaction');
+            this.txForm.linkVal = `${type}-${id}`;
+        },
+
+        // ====== TRANSFER ======
+        submitTransfer() {
+            const { fromWalletId, toWalletId, amount, note } = this.transferForm;
+            if (!fromWalletId || !toWalletId || fromWalletId === toWalletId || !amount) {
+                this.showToast('Please fill all transfer fields.', 'error'); return;
+            }
+            const amt = parseFloat(amount);
+            const now = new Date().toISOString();
+            const fromWallet = this.appData.wallets.find(w => w.id == fromWalletId);
+            const toWallet = this.appData.wallets.find(w => w.id == toWalletId);
+            const transferNote = note || `Transfer: ${fromWallet?.name} → ${toWallet?.name}`;
+
+            this.appData.transactions.push({
+                id: Date.now(), date: now, type: 'expense', amount: amt,
+                category: 'Transfer', note: transferNote, walletId: fromWalletId,
+                tripId: null, saveId: null, isRecurring: false, isTransfer: true, receiptImage: null, recurringMonth: null
+            });
+            this.appData.transactions.push({
+                id: Date.now() + 1, date: now, type: 'income', amount: amt,
+                category: 'Transfer', note: transferNote, walletId: toWalletId,
+                tripId: null, saveId: null, isRecurring: false, isTransfer: true, receiptImage: null, recurringMonth: null
+            });
+
+            this.saveData();
+            this.closeModal('transfer');
+            this.showToast(this.t('transfer_saved'));
+        },
+
+        // ====== AUTO-RECURRING ======
+        processRecurring() {
+            const now = new Date();
+            const currentMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+
+            const recurringTemplates = this.appData.transactions.filter(tx => tx.isRecurring && !tx.isTransfer);
+
+            let addedCount = 0;
+            recurringTemplates.forEach(template => {
+                if (template.recurringMonth === currentMonth) return;
+
+                const existsForMonth = this.appData.transactions.some(tx =>
+                    tx.id !== template.id &&
+                    tx.isRecurring &&
+                    tx.category === template.category &&
+                    tx.type === template.type &&
+                    Math.abs(parseFloat(tx.amount) - parseFloat(template.amount)) < 0.01 &&
+                    tx.recurringMonth === currentMonth
+                );
+                if (existsForMonth) {
+                    template.recurringMonth = currentMonth;
+                    return;
+                }
+
+                const originalDate = new Date(template.date);
+                const newDay = Math.min(originalDate.getDate(), new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate());
+                const newDate = new Date(now.getFullYear(), now.getMonth(), newDay, originalDate.getHours(), originalDate.getMinutes());
+
+                if (newDate > now) return;
+
+                this.appData.transactions.push({
+                    id: Date.now() + Math.random(),
+                    date: newDate.toISOString(),
+                    type: template.type,
+                    amount: template.amount,
+                    category: template.category,
+                    note: (template.note || '') + ' (Auto)',
+                    walletId: template.walletId,
+                    tripId: template.tripId,
+                    saveId: template.saveId,
+                    isRecurring: true,
+                    isTransfer: false,
+                    receiptImage: null,
+                    recurringMonth: currentMonth
+                });
+                template.recurringMonth = currentMonth;
+                addedCount++;
+            });
+
+            if (addedCount > 0) {
+                this.saveData();
+                this.showToast(this.t('recurring_added', { count: addedCount }), 'info');
+            }
+        },
+
+        // ====== TRIP CRUD ======
+        submitTrip() {
+            if (!this.tripForm.name.trim()) { this.showToast('Trip name required.', 'error'); return; }
+            this.appData.trips.push({ id: Date.now(), name: this.tripForm.name, budget: parseFloat(this.tripForm.budget) || 0 });
+            this.saveData();
+            this.closeModal('trip');
+            this.tripForm = { name: '', budget: '' };
+            this.showToast(this.t('trip_created'));
+        },
+        deleteTrip(id) {
+            if (confirm(this.t('confirm_del_trip'))) {
+                this.appData.trips = this.appData.trips.filter(t => t.id !== id);
+                this.saveData(); this.showToast(this.t('trip_deleted'), 'error');
+            }
+        },
+
+        // ====== SAVING CRUD ======
+        submitSaving() {
+            if (!this.savingForm.name.trim()) { this.showToast('Goal name required.', 'error'); return; }
+            this.appData.savings.push({ id: Date.now(), name: this.savingForm.name, target: parseFloat(this.savingForm.target) || 0 });
+            this.saveData();
+            this.closeModal('saving');
+            this.savingForm = { name: '', target: '' };
+            this.showToast(this.t('goal_created'));
+        },
+        deleteSaving(id) {
+            if (confirm(this.t('confirm_del_save'))) {
+                this.appData.savings = this.appData.savings.filter(s => s.id !== id);
+                this.saveData(); this.showToast(this.t('goal_deleted'), 'error');
+            }
+        },
+
+        // ====== LOAN CRUD ======
+        submitLoan() {
+            const amt = parseFloat(this.loanForm.amount);
+            const mo = parseFloat(this.loanForm.months);
+            if (!this.loanForm.name.trim() || !amt || amt <= 0 || !mo || mo < 1) {
+                this.showToast('Please fill all fields correctly.', 'error'); return;
+            }
+            if (this.editingLoanId) {
+                const idx = this.appData.loans.findIndex(l => l.id === this.editingLoanId);
+                if (idx !== -1) {
+                    this.appData.loans[idx] = {
+                        ...this.appData.loans[idx],
+                        name: this.loanForm.name,
+                        type: this.loanForm.type,
+                        amount: parseFloat(this.loanForm.amount),
+                        rate: parseFloat(this.loanForm.rate) || 0,
+                        months: parseFloat(this.loanForm.months),
+                        monthlyInstallment: this.loanCalcEmi,
+                    };
+                    this.showToast('Loan updated!');
+                }
+                this.editingLoanId = null;
+            } else {
+                this.appData.loans.push({
+                    id: Date.now(), name: this.loanForm.name, type: this.loanForm.type,
+                    amount: parseFloat(this.loanForm.amount), rate: parseFloat(this.loanForm.rate) || 0,
+                    months: parseFloat(this.loanForm.months), monthlyInstallment: this.loanCalcEmi,
+                    paidAmount: 0, paidMonths: 0, startDate: new Date().toISOString()
+                });
+                this.showToast(this.t('loan_added'));
+            }
+            this.saveData();
+            this.closeModal('loan');
+            this.loanForm = { name: '', type: 'Personal Loan', amount: '', rate: '', months: '' };
+        },
+        payLoanInstallment(id) {
+            const loan = this.appData.loans.find(l => l.id === id);
+            if (!loan) return;
+            if (confirm(this.t('confirm_pay', { amount: this.formatMoney(loan.monthlyInstallment), name: loan.name }))) {
+                this.appData.transactions.push({
+                    id: Date.now(), date: new Date().toISOString(), type: 'expense',
+                    amount: loan.monthlyInstallment, category: 'Loan Repayment',
+                    note: `${this.t('installment')}: ${loan.name}`, walletId: null,
+                    tripId: null, saveId: null, loanId: loan.id, isRecurring: false, receiptImage: null, recurringMonth: null
+                });
+                loan.paidAmount += loan.monthlyInstallment;
+                loan.paidMonths += 1;
+                this.saveData();
+                this.showToast(this.t('installment_paid'));
+            }
+        },
+        deleteLoan(id) {
+            if (confirm(this.t('confirm_del_loan'))) {
+                this.appData.loans = this.appData.loans.filter(l => l.id !== id);
+                this.saveData(); this.showToast(this.t('loan_deleted'), 'error');
+            }
+        },
+
+        // ====== LENT MONEY CRUD ======
+        submitLentMoney() {
+            if (!this.appData.lentMoneys) this.appData.lentMoneys = [];
+            if (!this.lentForm.name.trim()) { this.showToast('Name is required.', 'error'); return; }
+            if (!this.lentForm.amount || parseFloat(this.lentForm.amount) <= 0) { this.showToast('Enter a valid amount.', 'error'); return; }
+            const now = new Date();
+            const pad = n => String(n).padStart(2, '0');
+            const date = this.lentForm.date || `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+            this.appData.lentMoneys.push({
+                id: Date.now(),
+                name: this.lentForm.name,
+                amount: parseFloat(this.lentForm.amount),
+                date: new Date(date + 'T12:00:00').toISOString(),
+                note: this.lentForm.note || '',
+                paid: false,
+            });
+            this.saveData();
+            this.closeModal('lentMoney');
+            this.lentForm = { name: '', amount: '', date: '', note: '' };
+            this.showToast(this.t('lent_added'));
+        },
+        markLentPaid(id) {
+            if (!confirm(this.t('confirm_mark_paid'))) return;
+            const lent = this.appData.lentMoneys.find(l => l.id === id);
+            if (lent) { lent.paid = true; this.saveData(); this.showToast(this.t('lent_marked_paid')); }
+        },
+        deleteLentMoney(id) {
+            if (!confirm(this.t('confirm_del_lent'))) return;
+            this.appData.lentMoneys = this.appData.lentMoneys.filter(l => l.id !== id);
+            this.saveData();
+            this.showToast(this.t('lent_deleted'), 'error');
+        },
+
+        // ====== REPORTS / CHARTS ======
+        updateReports() {
+            const range = this.reportRange;
+            const walletId = this.reportWalletFilter;
+            const now = new Date();
+            const filtered = this.appData.transactions.filter(tx => {
+                const d = new Date(tx.date);
+                let inRange = true;
+                if (range === 'this_month') inRange = d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+                else if (range === 'last_month') inRange = d.getMonth() === (now.getMonth() === 0 ? 11 : now.getMonth() - 1);
+                else if (range === 'last_7') { const p = new Date(); p.setDate(now.getDate() - 7); inRange = d >= p; }
+                else if (range === 'last_3m') { const p = new Date(); p.setMonth(now.getMonth() - 3); inRange = d >= p; }
+                const inWallet = !walletId || String(tx.walletId) === String(walletId);
+                return inRange && inWallet;
+            });
+
+            this.reportIncome = filtered.filter(tx => tx.type === 'income').reduce((a, tx) => a + parseFloat(tx.amount), 0);
+            this.reportExpense = filtered.filter(tx => tx.type === 'expense').reduce((a, tx) => a + parseFloat(tx.amount), 0);
+
+            this.$nextTick(() => {
+                // Pie chart
+                const cats = {};
+                filtered.filter(tx => tx.type === 'expense' && !tx.isTransfer).forEach(tx => {
+                    cats[tx.category] = (cats[tx.category] || 0) + parseFloat(tx.amount);
+                });
+                const pieCanvas = this.$refs.chartPie;
+                if (pieCanvas) {
+                    if (this.pieChart) this.pieChart.destroy();
+                    this.pieChart = new Chart(pieCanvas.getContext('2d'), {
+                        type: 'doughnut',
+                        data: { labels: Object.keys(cats), datasets: [{ data: Object.values(cats), backgroundColor: ['#3b82f6','#ef4444','#10b981','#f59e0b','#6366f1','#8b5cf6','#ec4899','#14b8a6','#f97316','#06b6d4'], borderWidth: 0, hoverOffset: 6 }] },
+                        options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'right', labels: { color: '#94a3b8', font: { family: 'Outfit', size: 11 }, boxWidth: 12, padding: 12 } } } }
+                    });
+                }
+
+                // Bar chart
+                const barCanvas = this.$refs.chartBar;
+                if (barCanvas) {
+                    if (this.barChart) this.barChart.destroy();
+                    this.barChart = new Chart(barCanvas.getContext('2d'), {
+                        type: 'bar',
+                        data: { labels: [this.t('income'), this.t('expenses')], datasets: [{ data: [this.reportIncome, this.reportExpense], backgroundColor: ['rgba(16,185,129,0.8)', 'rgba(239,68,68,0.8)'], borderRadius: 8, barThickness: 60 }] },
+                        options: { responsive: true, maintainAspectRatio: false, scales: { y: { ticks: { color: '#94a3b8', font: { family: 'Outfit' } }, grid: { color: '#1e293b' } }, x: { ticks: { color: '#94a3b8', font: { family: 'Outfit' } }, grid: { display: false } } }, plugins: { legend: { display: false } } }
+                    });
+                }
+
+                // Line chart
+                const months = [], incomeData = [], expenseData = [];
+                for (let i = 5; i >= 0; i--) {
+                    const d = new Date(); d.setMonth(now.getMonth() - i);
+                    months.push(d.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' }));
+                    const inc = this.appData.transactions.filter(tx => {
+                        const td = new Date(tx.date);
+                        const inWallet = !walletId || String(tx.walletId) === String(walletId);
+                        return tx.type === 'income' && td.getMonth() === d.getMonth() && td.getFullYear() === d.getFullYear() && inWallet;
+                    }).reduce((a, tx) => a + parseFloat(tx.amount), 0);
+                    const exp = this.appData.transactions.filter(tx => {
+                        const td = new Date(tx.date);
+                        const inWallet = !walletId || String(tx.walletId) === String(walletId);
+                        return tx.type === 'expense' && td.getMonth() === d.getMonth() && td.getFullYear() === d.getFullYear() && inWallet;
+                    }).reduce((a, tx) => a + parseFloat(tx.amount), 0);
+                    incomeData.push(inc); expenseData.push(exp);
+                }
+                const lineCanvas = this.$refs.chartLine;
+                if (lineCanvas) {
+                    if (this.lineChart) this.lineChart.destroy();
+                    this.lineChart = new Chart(lineCanvas.getContext('2d'), {
+                        type: 'line',
+                        data: {
+                            labels: months,
+                            datasets: [
+                                { label: this.t('income'), data: incomeData, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.08)', tension: 0.4, fill: true, pointBackgroundColor: '#10b981', pointRadius: 4 },
+                                { label: this.t('expenses'), data: expenseData, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.08)', tension: 0.4, fill: true, pointBackgroundColor: '#ef4444', pointRadius: 4 }
+                            ]
+                        },
+                        options: { responsive: true, maintainAspectRatio: false, scales: { y: { ticks: { color: '#94a3b8', font: { family: 'Outfit' } }, grid: { color: '#1e293b' } }, x: { ticks: { color: '#94a3b8', font: { family: 'Outfit' } }, grid: { display: false } } }, plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'Outfit' }, boxWidth: 12 } } } }
+                    });
+                }
+            });
+        },
+
+        // ====== PDF EXPORT ======
+        async downloadReportPDF() {
+            const { jsPDF } = window.jspdf;
+            this.showToast(this.t('generating_pdf'), 'info');
+            try {
+                const doc = new jsPDF('p', 'mm', 'a4');
+                const pageW = 210, pageH = 297, margin = 14;
+                const usableW = pageW - margin * 2;
+                const now = new Date();
+
+                // === Gather filtered data (same logic as updateReports) ===
+                const range = this.reportRange;
+                const walletId = this.reportWalletFilter;
+                const filteredTx = this.appData.transactions.filter(tx => {
+                    const d = new Date(tx.date);
+                    let inRange = true;
+                    if (range === 'this_month') inRange = d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+                    else if (range === 'last_month') { const lm = now.getMonth() === 0 ? 11 : now.getMonth()-1; inRange = d.getMonth() === lm; }
+                    else if (range === 'last_7') { const p = new Date(); p.setDate(now.getDate()-7); inRange = d >= p; }
+                    else if (range === 'last_3m') { const p = new Date(); p.setMonth(now.getMonth()-3); inRange = d >= p; }
+                    const inW = !walletId || String(tx.walletId) === String(walletId);
+                    return inRange && inW;
+                }).sort((a,b) => new Date(b.date) - new Date(a.date));
+
+                const totalInc = filteredTx.filter(t=>t.type==='income').reduce((a,t)=>a+parseFloat(t.amount),0);
+                const totalExp = filteredTx.filter(t=>t.type==='expense').reduce((a,t)=>a+parseFloat(t.amount),0);
+                const netSav = totalInc - totalExp;
+                const walletLabel = walletId ? (this.appData.wallets.find(w=>String(w.id)===String(walletId))?.name || 'Wallet') : 'All Wallets';
+                const rangeLabels = { this_month:'This Month', last_month:'Last Month', last_7:'Last 7 Days', last_3m:'Last 3 Months', all_time:'All Time' };
+
+                // ─── Helper functions ───────────────────────────────────────
+                const fm = (v) => new Intl.NumberFormat('en-US',{style:'currency',currency:this.appData.settings.currency}).format(v||0);
+                const fd = (iso) => new Date(iso).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+                const ft = (iso) => new Date(iso).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+                let y = 0;
+
+                const checkPage = (needed = 10) => {
+                    if (y + needed > pageH - 16) { doc.addPage(); y = 18; }
+                };
+
+                const drawHeader = () => {
+                    // Dark header band
+                    doc.setFillColor(11,14,20);
+                    doc.rect(0, 0, pageW, 42, 'F');
+                    // Accent bar
+                    doc.setFillColor(59,130,246);
+                    doc.rect(0, 42, pageW, 2, 'F');
+
+                    // App title
+                    doc.setFont('helvetica','bold');
+                    doc.setFontSize(18);
+                    doc.setTextColor(255,255,255);
+                    doc.text('ALONE MANAGEMENT', margin, 16);
+
+                    // Subtitle
+                    doc.setFont('helvetica','normal');
+                    doc.setFontSize(9);
+                    doc.setTextColor(148,163,184);
+                    doc.text('Pro V5 · Financial Report', margin, 23);
+                    doc.text(`Period: ${rangeLabels[range] || range}   |   Wallet: ${walletLabel}`, margin, 29);
+                    doc.text(`Generated: ${now.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})} ${now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`, margin, 35);
+
+                    // Page number top right
+                    doc.setFontSize(8);
+                    doc.setTextColor(100,116,139);
+                    doc.text(`Page ${doc.internal.getCurrentPageInfo().pageNumber}`, pageW-margin, 16, {align:'right'});
+                    y = 52;
+                };
+
+                const sectionTitle = (title, iconChar='') => {
+                    checkPage(14);
+                    doc.setFillColor(21,27,35);
+                    doc.roundedRect(margin, y, usableW, 9, 2, 2, 'F');
+                    doc.setFont('helvetica','bold');
+                    doc.setFontSize(10);
+                    doc.setTextColor(96,165,250);
+                    doc.text(title.toUpperCase(), margin+4, y+6.2);
+                    y += 13;
+                };
+
+                const summaryCard = (label, value, r, g, b) => {
+                    const cw = (usableW - 8) / 3;
+                    return { label, value, r, g, b, cw };
+                };
+
+                const drawSummaryCards = (cards) => {
+                    checkPage(22);
+                    const cw = (usableW - (cards.length-1)*4) / cards.length;
+                    cards.forEach((c, i) => {
+                        const cx = margin + i*(cw+4);
+                        doc.setFillColor(21,27,35);
+                        doc.roundedRect(cx, y, cw, 18, 3, 3, 'F');
+                        doc.setDrawColor(c.r, c.g, c.b);
+                        doc.setLineWidth(0.6);
+                        doc.roundedRect(cx, y, cw, 18, 3, 3, 'S');
+                        doc.setFont('helvetica','normal');
+                        doc.setFontSize(7.5);
+                        doc.setTextColor(148,163,184);
+                        doc.text(c.label.toUpperCase(), cx+cw/2, y+5.5, {align:'center'});
+                        doc.setFont('helvetica','bold');
+                        doc.setFontSize(11);
+                        doc.setTextColor(c.r, c.g, c.b);
+                        doc.text(c.value, cx+cw/2, y+13, {align:'center'});
+                    });
+                    y += 22;
+                };
+
+                // ── Table helper ──────────────────────────────────────────
+                const drawTable = (headers, rows, colWidths, colAligns=[]) => {
+                    const rowH = 7.5, headH = 8.5;
+                    const tableW = colWidths.reduce((a,b)=>a+b,0);
+                    checkPage(headH + 4);
+
+                    // Table header
+                    doc.setFillColor(30,41,59);
+                    doc.rect(margin, y, tableW, headH, 'F');
+                    doc.setFont('helvetica','bold');
+                    doc.setFontSize(8);
+                    doc.setTextColor(148,163,184);
+                    let cx = margin;
+                    headers.forEach((h, i) => {
+                        const align = colAligns[i] || 'left';
+                        const tx = align==='right' ? cx+colWidths[i]-2 : align==='center' ? cx+colWidths[i]/2 : cx+2.5;
+                        doc.text(h, tx, y+6, {align});
+                        cx += colWidths[i];
+                    });
+                    y += headH;
+
+                    // Rows
+                    doc.setFont('helvetica','normal');
+                    doc.setFontSize(7.8);
+                    rows.forEach((row, ri) => {
+                        checkPage(rowH + 2);
+                        if (ri % 2 === 0) {
+                            doc.setFillColor(15,23,42);
+                            doc.rect(margin, y, tableW, rowH, 'F');
+                        }
+                        // Row separator
+                        doc.setDrawColor(30,41,59);
+                        doc.setLineWidth(0.2);
+                        doc.line(margin, y+rowH, margin+tableW, y+rowH);
+
+                        cx = margin;
+                        row.forEach((cell, i) => {
+                            const align = colAligns[i] || 'left';
+                            const tx = align==='right' ? cx+colWidths[i]-2 : align==='center' ? cx+colWidths[i]/2 : cx+2.5;
+                            // colour income / expense cells
+                            if (typeof cell === 'object' && cell.text) {
+                                doc.setTextColor(cell.r, cell.g, cell.b);
+                                const cellText = doc.splitTextToSize(String(cell.text), colWidths[i]-4);
+                                doc.text(cellText[0], tx, y+5.2, {align});
+                                doc.setTextColor(226,232,240);
+                            } else {
+                                doc.setTextColor(226,232,240);
+                                const cellText = doc.splitTextToSize(String(cell||''), colWidths[i]-4);
+                                doc.text(cellText[0], tx, y+5.2, {align});
+                            }
+                            cx += colWidths[i];
+                        });
+                        y += rowH;
+                    });
+                    // Bottom border
+                    doc.setDrawColor(59,130,246);
+                    doc.setLineWidth(0.4);
+                    doc.line(margin, y, margin+tableW, y);
+                    y += 4;
+                };
+
+                // ════════════════════════════════════════════════════════
+                // PAGE 1 — SUMMARY + CHARTS
+                // ════════════════════════════════════════════════════════
+                drawHeader();
+
+                // Summary cards
+                sectionTitle('Financial Summary');
+                drawSummaryCards([
+                    { label: 'Total Income',  value: fm(totalInc), r:16,  g:185, b:129 },
+                    { label: 'Total Expenses',value: fm(totalExp), r:239, g:68,  b:68  },
+                    { label: 'Net Savings',   value: fm(netSav),   r: netSav>=0?59:239, g: netSav>=0?130:68, b: netSav>=0?246:68 },
+                ]);
+                y += 2;
+
+                // Charts (3 from canvas)
+                sectionTitle('Visual Analytics');
+                const chartY = y;
+                const charts = [
+                    { ref: this.$refs.chartPie, x: margin,    w: 86, h: 70 },
+                    { ref: this.$refs.chartBar, x: margin+90, w: 86, h: 70 },
+                ];
+                for (const ch of charts) {
+                    if (ch.ref) {
+                        try {
+                            const cv = await html2canvas(ch.ref.parentElement, { backgroundColor:'#151b23', scale:2 });
+                            doc.addImage(cv.toDataURL('image/png'), 'PNG', ch.x, chartY, ch.w, ch.h);
+                        } catch(e) {}
+                    }
+                }
+                y = chartY + 74;
+                if (this.$refs.chartLine) {
+                    try {
+                        const cv3 = await html2canvas(this.$refs.chartLine.parentElement, { backgroundColor:'#151b23', scale:2 });
+                        doc.addImage(cv3.toDataURL('image/png'), 'PNG', margin, y, usableW, 68);
+                        y += 72;
+                    } catch(e) {}
+                }
+
+                // ════════════════════════════════════════════════════════
+                // CATEGORY BREAKDOWN TABLE
+                // ════════════════════════════════════════════════════════
+                checkPage(30);
+                sectionTitle('Spending by Category');
+                const catMap = {};
+                filteredTx.filter(t=>t.type==='expense'&&!t.isTransfer).forEach(t=>{
+                    if(!catMap[t.category]) catMap[t.category]={count:0,total:0};
+                    catMap[t.category].count++;
+                    catMap[t.category].total += parseFloat(t.amount);
+                });
+                const catRows = Object.entries(catMap)
+                    .sort((a,b)=>b[1].total-a[1].total)
+                    .map(([cat,d])=>[
+                        cat,
+                        d.count,
+                        { text: fm(d.total), r:239, g:68, b:68 },
+                        { text: totalExp>0 ? (d.total/totalExp*100).toFixed(1)+'%' : '0%', r:148, g:163, b:184 },
+                    ]);
+                if (catRows.length) {
+                    drawTable(
+                        ['Category','Txns','Amount','% of Total'],
+                        catRows,
+                        [80, 22, 52, 28],
+                        ['left','center','right','center']
+                    );
+                } else {
+                    doc.setTextColor(100,116,139); doc.setFontSize(9);
+                    doc.text('No expense data for this period.', margin+4, y+5); y+=12;
+                }
+
+                // ════════════════════════════════════════════════════════
+                // EXPENSE TRANSACTIONS TABLE
+                // ════════════════════════════════════════════════════════
+                const expenses = filteredTx.filter(t=>t.type==='expense');
+                if (expenses.length) {
+                    checkPage(30);
+                    sectionTitle(`Expense Transactions (${expenses.length})`);
+                    const expRows = expenses.map(t=>[
+                        fd(t.date),
+                        ft(t.date),
+                        t.category || '-',
+                        this.walletName(t.walletId) || '-',
+                        (t.note||'').slice(0,28) || '-',
+                        { text: fm(t.amount), r:239, g:68, b:68 },
+                    ]);
+                    drawTable(
+                        ['Date','Time','Category','Wallet','Note','Amount'],
+                        expRows,
+                        [26, 17, 32, 28, 52, 27],
+                        ['left','center','left','left','left','right']
+                    );
+                }
+
+                // ════════════════════════════════════════════════════════
+                // INCOME TRANSACTIONS TABLE
+                // ════════════════════════════════════════════════════════
+                const incomes = filteredTx.filter(t=>t.type==='income');
+                if (incomes.length) {
+                    checkPage(30);
+                    sectionTitle(`Income Transactions (${incomes.length})`);
+                    const incRows = incomes.map(t=>[
+                        fd(t.date),
+                        ft(t.date),
+                        t.category || '-',
+                        this.walletName(t.walletId) || '-',
+                        (t.note||'').slice(0,28) || '-',
+                        { text: fm(t.amount), r:16, g:185, b:129 },
+                    ]);
+                    drawTable(
+                        ['Date','Time','Category','Wallet','Note','Amount'],
+                        incRows,
+                        [26, 17, 32, 28, 52, 27],
+                        ['left','center','left','left','left','right']
+                    );
+                }
+
+                // ════════════════════════════════════════════════════════
+                // FOOTER on all pages
+                // ════════════════════════════════════════════════════════
+                const totalPages = doc.internal.getNumberOfPages();
+                for (let p = 1; p <= totalPages; p++) {
+                    doc.setPage(p);
+                    doc.setFillColor(11,14,20);
+                    doc.rect(0, pageH-10, pageW, 10, 'F');
+                    doc.setFont('helvetica','normal');
+                    doc.setFontSize(7.5);
+                    doc.setTextColor(100,116,139);
+                    doc.text('Alone Management Pro V5 · Confidential', margin, pageH-4);
+                    doc.text(`Page ${p} of ${totalPages}`, pageW-margin, pageH-4, {align:'right'});
+                }
+
+                doc.save(`AloneMgt_Report_${now.toISOString().slice(0,10)}.pdf`);
+                this.showToast(this.t('pdf_success'));
+            } catch (e) {
+                console.error(e);
+                this.showToast('PDF error: ' + e.message, 'error');
+            }
+        },
+
+        // ====== DATA MANAGEMENT ======
+        exportData() {
+            const esc = v => `"${String(v || '').replace(/"/g, '""')}"`;
+            let csv = 'Date,Type,Category,Amount,Wallet,Note\n';
+            this.appData.transactions.forEach(tx => {
+                csv += `${new Date(tx.date).toLocaleDateString()},${tx.type},${esc(tx.category)},${tx.amount},${esc(this.walletName(tx.walletId))},${esc(tx.note)}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'AloneMgt_Data.csv'; a.click();
+        },
+        exportJSON() {
+            const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(this.appData));
+            const a = document.createElement('a'); a.href = dataStr;
+            a.download = `AloneMgt_Backup_${new Date().toISOString().slice(0,10)}.json`; a.click();
+        },
+        importData() {
+            const file = this.$refs.importFile?.files[0];
+            if (!file) { this.showToast('Please select a JSON file', 'error'); return; }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (imported.transactions && imported.settings) {
+                        localStorage.setItem('aloneMgtProV5', JSON.stringify(imported));
+                        this.showToast(this.t('restored_success'), 'success');
+                        setTimeout(() => location.reload(), 1500);
+                    } else { this.showToast(this.t('invalid_file'), 'error'); }
+                } catch { this.showToast(this.t('invalid_file'), 'error'); }
+            };
+            reader.readAsText(file);
+        },
+        clearData() {
+            if (confirm(this.t('confirm_reset'))) {
+                ['aloneMgtProV5','aloneMgtProV4','aloneMgtProV3'].forEach(k => localStorage.removeItem(k));
+                location.reload();
+            }
+        },
+
+        // ====== WALLET CRUD ======
+        editWallet(wallet) {
+            this.editingWalletId = wallet.id;
+            this.walletForm = { name: wallet.name, type: wallet.type, color: wallet.color, icon: wallet.icon };
+            this.modals.addWallet = true;
+        },
+        submitWallet() {
+            if (!this.walletForm.name.trim()) { this.showToast('Wallet name required.', 'error'); return; }
+            if (this.editingWalletId) {
+                const idx = this.appData.wallets.findIndex(w => w.id === this.editingWalletId);
+                if (idx !== -1) {
+                    this.appData.wallets[idx] = { ...this.appData.wallets[idx], ...this.walletForm };
+                    this.showToast(this.t('wallet_updated'));
+                }
+            } else {
+                this.appData.wallets.push({
+                    id: Date.now(),
+                    name: this.walletForm.name,
+                    type: this.walletForm.type,
+                    icon: this.walletForm.icon,
+                    color: this.walletForm.color,
+                });
+                this.showToast(this.t('wallet_added'));
+            }
+            this.saveData();
+            this.closeModal('addWallet');
+        },
+        deleteWallet(id) {
+            if (this.appData.wallets.length <= 1) { this.showToast('Cannot delete last wallet!', 'error'); return; }
+            if (confirm('Delete this wallet? Transactions will remain.')) {
+                this.appData.wallets = this.appData.wallets.filter(w => w.id !== id);
+                this.saveData();
+                this.showToast('Wallet deleted.', 'error');
+            }
+        },
+
+        // ====== TRIP EDIT ======
+        editTrip(trip) {
+            this.editTripForm = { id: trip.id, name: trip.name, budget: trip.budget };
+            this.modals.editTrip = true;
+        },
+        submitEditTrip() {
+            if (!this.editTripForm.name.trim()) return;
+            const idx = this.appData.trips.findIndex(t => t.id === this.editTripForm.id);
+            if (idx !== -1) {
+                this.appData.trips[idx].name = this.editTripForm.name;
+                this.appData.trips[idx].budget = parseFloat(this.editTripForm.budget) || 0;
+                this.saveData();
+                this.showToast('Trip updated!');
+                this.closeModal('editTrip');
+            }
+        },
+
+        // ====== SAVING EDIT ======
+        editSaving(sav) {
+            this.editSavingForm = { id: sav.id, name: sav.name, target: sav.target };
+            this.modals.editSaving = true;
+        },
+        submitEditSaving() {
+            if (!this.editSavingForm.name.trim()) return;
+            const idx = this.appData.savings.findIndex(s => s.id === this.editSavingForm.id);
+            if (idx !== -1) {
+                this.appData.savings[idx].name = this.editSavingForm.name;
+                this.appData.savings[idx].target = parseFloat(this.editSavingForm.target) || 0;
+                this.saveData();
+                this.showToast('Savings goal updated!');
+                this.closeModal('editSaving');
+            }
+        },
+
+        // ====== LOAN EDIT ======
+        editLoan(loan) {
+            this.editingLoanId = loan.id;
+            this.loanForm = { name: loan.name, type: loan.type, amount: loan.amount, rate: loan.rate, months: loan.months };
+            this.modals.loan = true;
+        },
+    },
+
+    mounted() {
+        // Apply saved theme
+        this.applyTheme();
+
+        // Process recurring on login (if no PIN required)
+        if (this.isAuthenticated) {
+            this.$nextTick(() => this.processRecurring());
+        }
+
+        // Service Worker registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('[SW] Registered:', reg.scope))
+                    .catch(err => console.warn('[SW] Failed:', err));
+            });
+        }
+
+        // Online / Offline banner
+        const showOffline = () => {
+            const el = document.getElementById('offline-banner');
+            if (el) el.classList.remove('hidden');
+        };
+        const showOnline = () => {
+            const el = document.getElementById('offline-banner');
+            if (el) el.classList.add('hidden');
+        };
+        window.addEventListener('offline', showOffline);
+        window.addEventListener('online', showOnline);
+        if (!navigator.onLine) showOffline();
+    }
+}).mount('#app');
+</script>
+</body>
+</html>
