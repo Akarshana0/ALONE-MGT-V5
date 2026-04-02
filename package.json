@@ -1,0 +1,81 @@
+{
+  "name": "alone-management-pro",
+  "version": "5.0.0",
+  "description": "Personal Finance Manager - Track income, expenses, loans, savings & trips",
+  "main": "electron-main.js",
+  "author": "Alone Management",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win --x64",
+    "build:linux": "electron-builder --linux --x64",
+    "build:all-desktop": "electron-builder --win --linux",
+    "cap:init": "npx cap init \"Alone Management Pro\" com.alone.management.pro --web-dir .",
+    "cap:android": "npx cap add android && npx cap sync android",
+    "cap:ios": "npx cap add ios && npx cap sync ios",
+    "cap:open-android": "npx cap open android",
+    "cap:open-ios": "npx cap open ios"
+  },
+  "devDependencies": {
+    "electron": "^29.4.6",
+    "electron-builder": "^24.13.3"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/cli": "^6.1.2",
+    "@capacitor/core": "^6.1.2",
+    "@capacitor/ios": "^6.1.2"
+  },
+  "build": {
+    "appId": "com.alone.management.pro",
+    "productName": "Alone Management Pro",
+    "copyright": "Copyright © 2025 Alone Management",
+    "files": [
+      "index.html",
+      "manifest.json",
+      "sw.js",
+      "icon.jpg",
+      "Vue.js",
+      "electron-main.js",
+      "node_modules/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "icon.jpg",
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Alone Management Pro",
+      "installerIcon": "icon.jpg",
+      "uninstallerIcon": "icon.jpg"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb",
+        "rpm"
+      ],
+      "icon": "icon.jpg",
+      "category": "Office",
+      "description": "Personal Finance Manager"
+    },
+    "mac": {
+      "target": ["dmg"],
+      "icon": "icon.jpg",
+      "category": "public.app-category.finance"
+    }
+  }
+}

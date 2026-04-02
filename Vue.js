@@ -1,0 +1,1 @@
+/* Vue.js loads from CDN and is cached by service worker for offline use */

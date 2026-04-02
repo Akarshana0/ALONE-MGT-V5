@@ -1,0 +1,35 @@
+{
+  "appId": "com.alone.management.pro",
+  "appName": "Alone Management Pro",
+  "webDir": ".",
+  "server": {
+    "androidScheme": "https",
+    "allowNavigation": []
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "launchAutoHide": true,
+      "backgroundColor": "#0b0e14",
+      "androidSplashResourceName": "splash",
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": false,
+      "iosSpinnerStyle": "small"
+    },
+    "StatusBar": {
+      "style": "Dark",
+      "backgroundColor": "#0b0e14"
+    }
+  },
+  "android": {
+    "buildOptions": {
+      "keystorePath": "release.keystore",
+      "keystoreAlias": "alone-mgt-key"
+    },
+    "minWebViewVersion": 60
+  },
+  "ios": {
+    "scheme": "AloneManagement",
+    "contentInset": "automatic"
+  }
+}
